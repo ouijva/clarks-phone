@@ -1,0 +1,2914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CK — Personal Device</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Discord iOS Activity iframe touch/click fixes ── */
+html, body, .phone {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app-item, .back-btn, .msg-thread, .note-item,
+.ig-story, .ig-nav-btn, .ig-top-btn,
+.story-tap-left, .story-tap-right, .story-close,
+.gallery-photo, .viewer-close, .chat-send,
+.home-dock .app-item, [onclick] {
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+* { -webkit-tap-highlight-color: rgba(0,0,0,0); }
+
+:root {
+  --bg:        #f2f2f7;
+  --surface:   #ffffff;
+  --surface2:  #e5e5ea;
+  --border:    rgba(0,0,0,0.10);
+  --blue:      #007aff;
+  --blue-dim:  #005fcb;
+  --red:       #ff3b30;
+  --green:     #34c759;
+  --yellow:    #ffcc00;
+  --text:      #1c1c1e;
+  --text-dim:  #6c6c70;
+  --text-faint:#aeaeb2;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: #d1d1d6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', sans-serif;
+  overflow: hidden;
+}
+
+/* ── PHONE SHELL ── */
+.phone {
+  width: 390px;
+  height: 844px;
+  background: var(--bg);
+  border-radius: 55px;
+  border: 1.5px solid rgba(0,0,0,0.18);
+  box-shadow:
+    0 0 0 7px #b0b0b8,
+    0 0 0 9px rgba(0,0,0,0.06),
+    0 40px 80px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.9);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+
+/* Dynamic Island */
+.phone::before {
+  content: '';
+  position: absolute;
+  top: 10px; left: 50%; transform: translateX(-50%);
+  width: 126px; height: 37px;
+  background: #000000;
+  border-radius: 20px;
+  z-index: 100;
+}
+
+/* ── STATUS BAR ── */
+.status-bar {
+  height: 54px;
+  padding: 16px 28px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+.status-time {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+.status-icons {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.status-icons span { font-size: 12px; color: var(--text); }
+
+/* ── SCREENS ── */
+.screen {
+  display: none;
+  position: absolute;
+  top: 54px;
+  left: 0; right: 0; bottom: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+.screen.active { display: flex; }
+
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+.screen.active { animation: fadeSlide 0.18s ease; }
+
+/* ── LOCK SCREEN ── */
+#lock {
+  background: linear-gradient(175deg, #d6e4f7 0%, #c8daf5 50%, #ccd8f0 100%);
+  align-items: center;
+  padding: 20px 0 40px;
+  cursor: pointer;
+}
+.lock-bg-pattern {
+  position: absolute; inset: 0;
+  background-image:
+    radial-gradient(ellipse 250px 250px at 30% 25%, rgba(10,132,255,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 300px 300px at 75% 65%, rgba(10,132,255,0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+.lock-logo {
+  margin-top: 44px;
+  font-size: 11px;
+  letter-spacing: 5px;
+  color: rgba(0,122,255,0.75);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.lock-time {
+  margin-top: 26px;
+  font-size: 86px;
+  font-weight: 200;
+  color: var(--text);
+  line-height: 1;
+  letter-spacing: -4px;
+}
+.lock-date {
+  margin-top: 6px;
+  font-size: 17px;
+  font-weight: 400;
+  color: #1c1c1e;
+}
+.lock-notifs {
+  margin-top: 44px;
+  width: 100%;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lock-notif {
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 18px;
+  padding: 13px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.lock-notif-icon {
+  width: 36px; height: 36px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.lock-notif-app { font-size: 10px; color: rgba(0,0,0,0.45); letter-spacing: 0.5px; margin-bottom: 2px; font-weight: 600; text-transform: uppercase; }
+.lock-notif-text { font-size: 14px; color: #1c1c1e; line-height: 1.4; }
+.lock-hint {
+  margin-top: auto;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: rgba(0,0,0,0.28);
+  text-transform: uppercase;
+}
+
+/* ── HOME SCREEN ── */
+#home {
+  padding: 0;
+  flex-direction: column;
+  background: linear-gradient(175deg, #e8f0fa 0%, #dce8f8 100%);
+}
+.home-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 0 12px;
+}
+.home-scroll::-webkit-scrollbar { display: none; }
+
+/* Widget */
+.home-widget {
+  margin: 16px 20px 0;
+  background: rgba(0,122,255,0.08);
+  border: 1px solid rgba(0,122,255,0.2);
+  border-radius: 22px;
+  padding: 16px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.home-widget::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -20px;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,122,255,0.12) 0%, transparent 70%);
+}
+.hw-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--blue); text-transform: uppercase; margin-bottom: 4px; }
+.hw-headline { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.4; }
+.hw-meta { font-size: 11px; color: var(--text-dim); margin-top: 6px; }
+
+/* App grid */
+.app-grid {
+  padding: 22px 20px 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px 8px;
+}
+.app-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.app-icon {
+  width: 60px; height: 60px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  position: relative;
+  transition: transform 0.1s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+.app-item:active .app-icon { transform: scale(0.9); }
+.app-badge {
+  position: absolute;
+  top: -4px; right: -4px;
+  background: var(--red);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  min-width: 16px; height: 16px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 4px;
+  border: 1.5px solid var(--bg);
+}
+.app-label {
+  font-size: 10px;
+  color: rgba(0,0,0,0.75);
+  text-align: center;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+/* Dock */
+.home-dock {
+  flex-shrink: 0;
+  margin: 0 20px 18px;
+  background: rgba(255,255,255,0.6);
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 34px;
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  backdrop-filter: blur(30px);
+}
+
+/* ── INNER SCREEN HEADER (iOS style) ── */
+.inner-header {
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  position: relative;
+}
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--blue);
+  font-size: 17px;
+  font-weight: 400;
+  cursor: pointer;
+  padding: 4px 0;
+  flex-shrink: 0;
+}
+.back-btn::before {
+  content: '‹';
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 300;
+}
+.inner-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.2px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.inner-subtitle {
+  font-size: 11px;
+  color: var(--text-dim);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 30px;
+}
+.inner-header-right {
+  margin-left: auto;
+  color: var(--blue);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* ── MESSAGES APP ── */
+#messages { flex-direction: column; }
+.msg-large-header {
+  padding: 8px 20px 12px;
+  flex-shrink: 0;
+}
+.msg-large-title {
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+.msg-search {
+  margin-top: 10px;
+  background: rgba(0,0,0,0.06);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 14px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+}
+.msg-list { flex: 1; overflow-y: auto; }
+.msg-list::-webkit-scrollbar { display: none; }
+.msg-thread {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.msg-thread:active { background: rgba(255,255,255,0.04); }
+.thread-avatar {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--surface2);
+}
+.thread-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.thread-info { flex: 1; min-width: 0; }
+.thread-name { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 2px; letter-spacing: -0.1px; }
+.thread-preview { font-size: 13px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.thread-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.thread-time { font-size: 12px; color: var(--text-dim); }
+.thread-unread {
+  background: var(--blue);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 18px; height: 18px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 5px;
+}
+
+/* ── CHAT VIEW ── */
+#chat { flex-direction: column; }
+.chat-header {
+  padding: 8px 16px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  position: relative;
+}
+.chat-header-back {
+  position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+  display: flex; align-items: center; gap: 2px;
+  color: var(--blue); font-size: 16px; font-weight: 400; cursor: pointer;
+}
+.chat-header-back::before { content: '‹'; font-size: 26px; font-weight: 300; line-height: 1; }
+.chat-header-av {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--surface2);
+  margin-bottom: 2px;
+}
+.chat-header-av img { width: 100%; height: 100%; object-fit: cover; }
+.chat-header-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.chat-header-status { font-size: 11px; color: var(--text-dim); }
+.chat-header-actions {
+  position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+  display: flex; gap: 14px; color: var(--blue); font-size: 20px;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 12px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.chat-messages::-webkit-scrollbar { display: none; }
+
+.chat-bubble-wrap {
+  display: flex;
+  flex-direction: column;
+  max-width: 75%;
+  margin-bottom: 2px;
+}
+.chat-bubble-wrap.sent { align-self: flex-end; align-items: flex-end; }
+.chat-bubble-wrap.recv { align-self: flex-start; align-items: flex-start; }
+
+.chat-bubble {
+  padding: 9px 14px;
+  border-radius: 20px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.chat-bubble-wrap.sent .chat-bubble {
+  background: var(--blue);
+  border-bottom-right-radius: 5px;
+  color: #fff;
+}
+.chat-bubble-wrap.recv .chat-bubble {
+  background: #e5e5ea;
+  border-bottom-left-radius: 5px;
+  color: #1c1c1e;
+}
+
+/* Image bubble */
+.chat-img-bubble {
+  padding: 3px !important;
+  background: transparent !important;
+  border-radius: 18px;
+}
+.chat-img {
+  width: 190px; height: 190px;
+  object-fit: cover;
+  border-radius: 16px;
+  display: block;
+  cursor: pointer;
+}
+
+.chat-time { font-size: 10px; color: var(--text-faint); margin-top: 3px; padding: 0 4px; }
+.chat-date-sep {
+  align-self: center;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin: 10px 0 4px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+.chat-input-bar {
+  padding: 8px 12px 18px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.chat-input-wrap {
+  flex: 1;
+  background: transparent;
+  border: 1.5px solid rgba(0,0,0,0.15);
+  border-radius: 22px;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+}
+.chat-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 15px;
+  color: var(--text);
+  outline: none;
+  font-family: inherit;
+}
+.chat-input::placeholder { color: #c7c7cc; }
+.chat-send {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--blue);
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* ── GALLERY ── */
+#gallery { flex-direction: column; }
+.gallery-body {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 2px;
+  background: #000;
+}
+.gallery-photo {
+  width: 100%; aspect-ratio: 1;
+  object-fit: cover; display: block;
+  transition: opacity 0.15s;
+}
+.gallery-photo:active { opacity: 0.8; }
+.gallery-body::-webkit-scrollbar { display: none; }
+
+/* Photo viewer */
+.photo-viewer {
+  position: absolute; inset: 0;
+  background: #000; z-index: 200;
+  display: none; flex-direction: column;
+  opacity: 0; transition: opacity 0.2s ease;
+}
+.photo-viewer.active { display: flex; opacity: 1; }
+.photo-viewer-top {
+  height: 54px;
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 10px 18px 0;
+}
+.viewer-close {
+  background: transparent; border: none;
+  color: var(--blue);
+  font-size: 17px; font-weight: 500;
+  cursor: pointer; font-family: inherit;
+}
+.photo-stage {
+  flex: 1; display: flex;
+  align-items: center; justify-content: center;
+  overflow: hidden; touch-action: none;
+}
+.viewer-image {
+  max-width: 100%; max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.22s ease, opacity 0.22s ease;
+  will-change: transform, opacity;
+}
+.photo-viewer.closing .viewer-image { transition: transform 0.2s ease, opacity 0.2s ease; }
+
+/* ── NOTES ── */
+#notes { flex-direction: column; }
+.notes-body { flex: 1; overflow-y: auto; }
+.notes-body::-webkit-scrollbar { display: none; }
+.notes-large-header {
+  padding: 8px 20px 10px;
+  flex-shrink: 0;
+}
+.notes-large-title { font-size: 34px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+.notes-search-bar {
+  margin: 0 16px 12px;
+  background: rgba(0,0,0,0.06);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 14px; color: var(--text-dim);
+}
+.notes-section-label {
+  font-size: 12px; font-weight: 600;
+  color: var(--text-dim);
+  padding: 2px 20px 6px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.note-item {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background 0.1s;
+}
+.note-item:active { background: rgba(255,255,255,0.04); }
+.note-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.note-preview { font-size: 13px; color: var(--text-dim); line-height: 1.4; }
+.note-date { font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+
+/* ── X (TWITTER) ── */
+#twitter { flex-direction: column; }
+.x-large-header {
+  padding: 8px 20px 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.x-large-title { font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+.x-handle-lbl { font-size: 13px; color: var(--text-dim); }
+.x-body { flex: 1; overflow-y: auto; }
+.x-body::-webkit-scrollbar { display: none; }
+.x-post {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; gap: 12px; cursor: pointer;
+  transition: background 0.1s;
+}
+.x-post:active { background: rgba(255,255,255,0.02); }
+.x-avatar { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: var(--surface2); }
+.x-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.x-post-content { flex: 1; min-width: 0; }
+.x-post-header { display: flex; align-items: baseline; gap: 5px; margin-bottom: 4px; flex-wrap: wrap; }
+.x-post-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.x-post-handle { font-size: 13px; color: var(--text-dim); }
+.x-post-time { font-size: 12px; color: var(--text-dim); margin-left: auto; }
+.x-post-text { font-size: 14px; color: var(--text); line-height: 1.5; margin-bottom: 10px; }
+.x-post-actions { display: flex; gap: 20px; }
+.x-action { font-size: 12px; color: var(--text-dim); display: flex; align-items: center; gap: 4px; cursor: pointer; }
+.social-icon-svg { width: 26px; height: 26px; fill: currentColor; }
+
+/* ── CALLS ── */
+#calls { flex-direction: column; }
+.calls-large-header { padding: 8px 20px 12px; flex-shrink: 0; }
+.calls-large-title { font-size: 34px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+.calls-body { flex: 1; overflow-y: auto; }
+.calls-body::-webkit-scrollbar { display: none; }
+.calls-section { font-size: 18px; font-weight: 700; color: var(--text); padding: 10px 20px 6px; }
+.call-item {
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 14px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.call-item:active { background: rgba(255,255,255,0.03); }
+.call-avatar { width: 46px; height: 46px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: var(--surface2); }
+.call-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.call-info { flex: 1; }
+.call-name { font-size: 16px; font-weight: 400; color: var(--text); }
+.call-name.missed { color: var(--red); }
+.call-detail { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
+.call-time { font-size: 12px; color: var(--text-dim); }
+.call-phone-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(10,132,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+
+/* ── PLACEHOLDER SCREEN (for apps coming in next chunk) ── */
+.coming-soon {
+  flex: 1; display: flex;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px; opacity: 0.4;
+}
+.coming-soon-icon { font-size: 48px; }
+.coming-soon-label { font-size: 14px; color: var(--text-dim); }
+
+/* ── PULSE ── */
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.pulse { animation: pulse 2s infinite; }
+* { scrollbar-width: none; }
+
+/* ══════════════════════════════════════════
+   DAILY PLANET APP
+══════════════════════════════════════════ */
+#daily-planet { flex-direction: column; background: var(--bg); }
+
+.dp-header {
+  flex-shrink: 0;
+  background: linear-gradient(160deg, #00224d 0%, #003580 100%);
+  padding: 10px 16px 14px;
+  border-bottom: 2px solid rgba(255,255,255,0.1);
+}
+.dp-back {
+  color: rgba(255,255,255,0.65);
+  font-size: 15px;
+  font-weight: 400;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+.dp-back::before { content: '‹'; font-size: 24px; font-weight: 300; line-height: 1; }
+.dp-masthead { display: flex; align-items: center; gap: 10px; }
+.dp-globe {
+  width: 36px; height: 36px;
+  background: radial-gradient(circle at 35% 35%, #4da6ff, #0055cc);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 0 12px rgba(77,166,255,0.4);
+  flex-shrink: 0;
+}
+.dp-title { font-family: 'Newsreader', Georgia, serif; font-size: 20px; font-weight: 600; color: #fff; letter-spacing: 0.5px; line-height: 1.1; }
+.dp-subtitle { font-size: 10px; color: rgba(255,255,255,0.45); letter-spacing: 2px; text-transform: uppercase; margin-top: 1px; }
+.dp-edition { margin-left: auto; text-align: right; font-size: 10px; color: rgba(255,255,255,0.35); line-height: 1.5; flex-shrink: 0; }
+
+.dp-body { flex: 1; overflow-y: auto; padding: 0 0 16px; }
+.dp-body::-webkit-scrollbar { display: none; }
+.dp-section-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 2px; color: var(--blue);
+  text-transform: uppercase; padding: 14px 16px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.dp-featured { padding: 14px 16px; border-bottom: 1px solid var(--border); cursor: pointer; }
+.dp-featured:active { background: rgba(255,255,255,0.03); }
+.dp-featured-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--red); margin-bottom: 6px; }
+.dp-featured-headline { font-family: 'Newsreader', Georgia, serif; font-size: 22px; font-weight: 600; color: var(--text); line-height: 1.3; letter-spacing: -0.3px; margin-bottom: 8px; }
+.dp-featured-sub { font-size: 13px; color: var(--text-dim); line-height: 1.5; margin-bottom: 10px; }
+.dp-featured-byline { font-size: 11px; color: var(--text-faint); font-style: italic; }
+.dp-featured-byline strong { color: rgba(0,0,0,0.45); font-style: normal; font-weight: 500; }
+
+.dp-article { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; cursor: pointer; transition: background 0.1s; }
+.dp-article:active { background: rgba(255,255,255,0.03); }
+.dp-article-text { flex: 1; min-width: 0; }
+.dp-article-tag { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--blue); margin-bottom: 3px; }
+.dp-article-headline { font-family: 'Newsreader', Georgia, serif; font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.35; margin-bottom: 3px; }
+.dp-article-meta { font-size: 11px; color: var(--text-faint); }
+.dp-article-thumb { width: 68px; height: 68px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: #e5e5ea; display:flex; align-items:center; justify-content:center; font-size:22px; }
+
+.dp-op-ed { margin: 14px 16px; background: rgba(10,132,255,0.07); border: 1px solid rgba(10,132,255,0.18); border-radius: 14px; padding: 14px; }
+.dp-op-ed-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--blue); margin-bottom: 6px; }
+.dp-op-ed-quote { font-family: 'Newsreader', Georgia, serif; font-size: 15px; font-style: italic; color: var(--text); line-height: 1.6; margin-bottom: 8px; }
+.dp-op-ed-attr { font-size: 11px; color: var(--text-dim); }
+
+/* ══════════════════════════════════════════
+   BIBLE APP
+══════════════════════════════════════════ */
+#bible { flex-direction: column; background: #faf8f3; }
+
+.bible-header { flex-shrink: 0; background: linear-gradient(160deg, #faf8f3 0%, #f0ece0 100%); padding: 10px 16px 14px; border-bottom: 1px solid rgba(0,0,0,0.07); }
+.bible-back { color: rgba(100,130,80,0.8); font-size: 15px; font-weight: 400; cursor: pointer; display: flex; align-items: center; gap: 2px; margin-bottom: 8px; }
+.bible-back::before { content: '‹'; font-size: 24px; font-weight: 300; line-height: 1; }
+.bible-header-row { display: flex; align-items: center; gap: 12px; }
+.bible-cross-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+.bible-header-title { font-family: 'Newsreader', Georgia, serif; font-size: 20px; font-weight: 600; color: #2d4a1e; letter-spacing: 0.3px; }
+.bible-header-version { font-size: 10px; color: rgba(60,80,40,0.45); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 1px; }
+.bible-streak { margin-left: auto; display: flex; flex-direction: column; align-items: center; font-size: 9px; color: rgba(60,80,40,0.5); letter-spacing: 0.5px; text-transform: uppercase; gap: 2px; flex-shrink: 0; }
+.bible-streak-num { font-size: 20px; font-weight: 700; color: #4a8c2a; line-height: 1; }
+
+.bible-body { flex: 1; overflow-y: auto; padding: 0 0 20px; }
+.bible-body::-webkit-scrollbar { display: none; }
+
+.bible-votd { margin: 14px 16px; background: linear-gradient(135deg, rgba(100,160,60,0.1) 0%, rgba(80,140,40,0.12) 100%); border: 1px solid rgba(80,160,60,0.2); border-radius: 18px; padding: 18px 18px 16px; position: relative; overflow: hidden; }
+.bible-votd::before { content: '"'; position: absolute; top: -10px; left: 10px; font-family: 'Newsreader', Georgia, serif; font-size: 100px; color: rgba(100,160,60,0.08); line-height: 1; pointer-events: none; }
+.bible-votd-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #4a8c2a; margin-bottom: 10px; }
+.bible-votd-text { font-family: 'Newsreader', Georgia, serif; font-size: 17px; font-style: italic; color: #1a2e10; line-height: 1.65; margin-bottom: 10px; }
+.bible-votd-ref { font-size: 12px; font-weight: 600; color: #4a8c2a; letter-spacing: 0.3px; }
+.bible-votd-actions { display: flex; gap: 10px; margin-top: 12px; }
+.bible-votd-btn { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid rgba(80,160,60,0.25); background: rgba(80,160,60,0.08); color: #3a7a1a; }
+
+.bible-section-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: rgba(60,80,40,0.45); text-transform: uppercase; padding: 14px 16px 8px; }
+
+.bible-verse-card { margin: 0 16px 10px; background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.07); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: background 0.1s; }
+.bible-verse-card:active { background: rgba(255,255,255,0.8); }
+.bible-verse-ref { font-size: 11px; font-weight: 600; color: #4a8c2a; margin-bottom: 6px; letter-spacing: 0.3px; }
+.bible-verse-text { font-family: 'Newsreader', Georgia, serif; font-size: 14px; font-style: italic; color: rgba(26,46,16,0.8); line-height: 1.6; }
+
+.bible-plan-card { margin: 0 16px; background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.07); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; }
+.bible-plan-card:active { background: rgba(255,255,255,0.8); }
+.bible-plan-icon { width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(135deg,#5aaa3a,#3d8020); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.bible-plan-title { font-size: 14px; font-weight: 600; color: #1a2e10; margin-bottom: 2px; }
+.bible-plan-sub { font-size: 12px; color: rgba(60,80,40,0.5); }
+.bible-plan-progress { font-size: 12px; color: #4a8c2a; font-weight: 600; flex-shrink: 0; }
+
+/* ══════════════════════════════════════════
+   INSTAGRAM — full styles
+══════════════════════════════════════════ */
+
+#instagram, #ig-profile { flex-direction: column; position: relative; }
+
+.social-body {
+  flex: 1; overflow-y: auto;
+  padding: 0 0 72px; min-height: 0;
+}
+.social-body::-webkit-scrollbar { display: none; }
+
+/* Top bar */
+.ig-top-bar {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 4px;
+  flex-shrink: 0;
+}
+.ig-top-logo {
+  font-size: 22px; font-weight: 700;
+  color: #1c1c1e; letter-spacing: -0.3px;
+}
+.ig-top-actions { display: flex; gap: 16px; align-items: center; }
+.ig-top-btn {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: #1c1c1e; border-radius: 50%;
+  position: relative; transition: color 0.15s;
+}
+.ig-top-btn svg { width: 24px; height: 24px; fill: currentColor; }
+.ig-notif-dot {
+  position: absolute; top: 3px; right: 3px;
+  width: 8px; height: 8px;
+  background: var(--red); border-radius: 50%;
+  border: 1.5px solid var(--bg);
+}
+
+/* Stories row */
+.ig-stories {
+  display: flex; gap: 14px;
+  padding: 10px 14px 10px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.ig-stories::-webkit-scrollbar { display: none; }
+.ig-story {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 4px;
+  flex-shrink: 0; cursor: pointer;
+}
+.ig-story-ring {
+  width: 62px; height: 62px; border-radius: 50%;
+  padding: 2.5px;
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+}
+.ig-story-ring.seen { background: rgba(255,255,255,0.18); }
+.ig-story-avatar {
+  width: 100%; height: 100%; border-radius: 50%;
+  overflow: hidden; background: var(--surface2);
+  border: 2.5px solid var(--bg); display: block;
+}
+.ig-story-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ig-story-name { font-size: 10px; color: var(--text); letter-spacing: -0.1px; }
+
+/* Posts */
+.ig-post { border-bottom: 1px solid var(--border); }
+.ig-post-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+.ig-post-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  overflow: hidden; background: var(--surface2); flex-shrink: 0;
+}
+.ig-post-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.ig-post-user { font-size: 13px; font-weight: 600; color: var(--text); }
+.ig-post-location { font-size: 11px; color: var(--text-dim); }
+.ig-post-img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+.ig-post-actions { display: flex; gap: 14px; padding: 10px 14px 4px; font-size: 22px; }
+.ig-post-actions span { cursor: pointer; }
+.ig-post-likes { font-size: 13px; font-weight: 600; color: var(--text); padding: 0 14px 4px; }
+.ig-post-caption { font-size: 13px; color: var(--text); padding: 0 14px 6px; line-height: 1.4; }
+.ig-post-caption strong { font-weight: 600; }
+.ig-post-time { font-size: 10px; color: var(--text-dim); padding: 0 14px 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Bottom nav */
+.ig-bottom-nav {
+  position: absolute; left: 0; right: 0; bottom: 23px;
+  height: 58px;
+  display: flex; justify-content: space-around; align-items: center;
+  background: rgba(242,242,247,0.97);
+  border-top: 1px solid rgba(0,0,0,0.1);
+  z-index: 999;
+}
+.ig-nav-btn {
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: rgba(0,0,0,0.35); border-radius: 50%;
+  transition: color 0.15s;
+}
+.ig-nav-btn.active { color: #1c1c1e; }
+.ig-nav-btn svg { width: 24px; height: 24px; fill: currentColor; }
+
+/* Story viewer */
+.ig-story-viewer {
+  position: absolute; inset: 0;
+  background: #000; z-index: 300;
+  display: none; flex-direction: column;
+}
+.ig-story-viewer.active { display: flex; }
+.story-progress-bar {
+  display: flex; gap: 4px;
+  padding: 10px 12px 6px;
+  position: absolute; top: 0; left: 0; right: 0; z-index: 10;
+}
+.story-seg { flex: 1; height: 2px; background: rgba(255,255,255,0.35); border-radius: 2px; overflow: hidden; }
+.story-seg-fill { height: 100%; background: #fff; width: 0%; transition: width 0.1s linear; }
+.story-seg-fill.done { width: 100%; transition: none; }
+.story-top-bar {
+  position: absolute; top: 22px; left: 0; right: 0;
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px; z-index: 10;
+}
+.story-avatar-sm { width: 32px; height: 32px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
+.story-avatar-sm img { width: 100%; height: 100%; object-fit: cover; }
+.story-username { font-size: 14px; font-weight: 600; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+.story-time-lbl { font-size: 11px; color: rgba(255,255,255,0.65); }
+.story-close { margin-left: auto; font-size: 22px; color: #fff; cursor: pointer; background: none; border: none; padding: 0 4px; }
+.story-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.story-tap-left, .story-tap-right { position: absolute; top: 0; bottom: 0; width: 40%; z-index: 5; cursor: pointer; }
+.story-tap-left { left: 0; }
+.story-tap-right { right: 0; }
+
+/* IG Notification panel */
+.ig-notif-panel {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg); z-index: 250;
+  display: none; flex-direction: column;
+}
+.ig-notif-panel.active { display: flex; }
+.ig-notif-panel-header {
+  padding: 14px 16px 10px;
+  display: flex; align-items: center; gap: 12px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.ig-notif-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  cursor: pointer;
+}
+.ig-notif-item:active { background: rgba(255,255,255,0.03); }
+.ig-notif-av { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: var(--surface2); flex-shrink: 0; }
+.ig-notif-av img { width: 100%; height: 100%; object-fit: cover; }
+.ig-notif-text { font-size: 13px; color: var(--text-dim); line-height: 1.4; }
+.ig-notif-text strong { color: var(--text); font-weight: 600; }
+.ig-notif-ago { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+
+/* IG Profile */
+#ig-profile { flex-direction: column; position: relative; }
+.ig-profile-body { flex: 1; overflow-y: auto; min-height: 0; padding-bottom: 80px; }
+.ig-profile-body::-webkit-scrollbar { display: none; }
+.ig-profile-header { padding: 16px 16px 0; }
+.ig-profile-top { display: flex; align-items: center; gap: 20px; margin-bottom: 12px; }
+.ig-profile-avatar-wrap {
+  width: 80px; height: 80px; border-radius: 50%;
+  padding: 2.5px;
+  background: linear-gradient(45deg, #f09433, #dc2743, #bc1888);
+  flex-shrink: 0;
+}
+.ig-profile-avatar { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: var(--surface2); border: 2.5px solid var(--bg); }
+.ig-profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.ig-profile-stats { display: flex; gap: 16px; flex: 1; justify-content: center; }
+.ig-profile-stat { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.ig-profile-stat-num { font-size: 18px; font-weight: 700; color: var(--text); line-height: 1; }
+.ig-profile-stat-label { font-size: 11px; color: var(--text-dim); }
+.ig-profile-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.ig-profile-handle { font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+.ig-profile-bio { font-size: 13px; color: var(--text); line-height: 1.5; margin-bottom: 12px; }
+.ig-profile-btn-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.ig-profile-btn {
+  flex: 1; padding: 7px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.07);
+  color: var(--text); text-align: center;
+}
+.ig-profile-tab-bar {
+  display: flex; border-bottom: 1px solid var(--border);
+  margin-bottom: 2px;
+}
+.ig-profile-tab {
+  flex: 1; padding: 10px; text-align: center;
+  cursor: pointer; color: var(--text-dim);
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s;
+}
+.ig-profile-tab.active { color: var(--text); border-bottom-color: var(--text); }
+.ig-profile-tab svg { width: 22px; height: 22px; fill: currentColor; }
+.ig-profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+.ig-profile-thumb { width: 100%; aspect-ratio: 1; object-fit: cover; cursor: pointer; display: block; }
+.ig-profile-thumb:active { opacity: 0.85; }
+
+/* IG DM list */
+#ig-dms { flex-direction: column; }
+.ig-dm-list { flex: 1; overflow-y: auto; }
+.ig-dm-list::-webkit-scrollbar { display: none; }
+.ig-dm-thread {
+  padding: 12px 16px; display: flex; align-items: center;
+  gap: 12px; cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.ig-dm-thread:active { background: rgba(255,255,255,0.04); }
+.ig-dm-av { width: 52px; height: 52px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: var(--surface2); }
+.ig-dm-av img { width: 100%; height: 100%; object-fit: cover; }
+.ig-dm-info { flex: 1; min-width: 0; }
+.ig-dm-name { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.ig-dm-preview { font-size: 13px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ig-dm-time { font-size: 11px; color: var(--text-dim); flex-shrink: 0; }
+.ig-dm-unread { width: 10px; height: 10px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
+
+/* IG DM Chat */
+#ig-dm-chat { flex-direction: column; }
+.ig-dm-chat-header {
+  padding: 8px 16px 10px;
+  display: flex; flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0; position: relative;
+}
+.ig-dm-back {
+  position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+  display: flex; align-items: center;
+  color: var(--blue); font-size: 16px; font-weight: 400; cursor: pointer;
+}
+.ig-dm-back::before { content: '‹'; font-size: 26px; font-weight: 300; line-height: 1; }
+.ig-dm-header-av { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; background: var(--surface2); margin-bottom: 2px; }
+.ig-dm-header-av img { width: 100%; height: 100%; object-fit: cover; }
+.ig-dm-header-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.ig-dm-header-handle { font-size: 11px; color: var(--text-dim); }
+.ig-dm-messages { flex: 1; overflow-y: auto; padding: 10px 12px 6px; display: flex; flex-direction: column; gap: 4px; }
+.ig-dm-messages::-webkit-scrollbar { display: none; }
+.ig-dm-bubble-wrap { display: flex; flex-direction: column; max-width: 75%; margin-bottom: 2px; }
+.ig-dm-bubble-wrap.sent { align-self: flex-end; align-items: flex-end; }
+.ig-dm-bubble-wrap.recv { align-self: flex-start; align-items: flex-start; }
+.ig-dm-bubble {
+  padding: 9px 14px; border-radius: 20px;
+  font-size: 15px; line-height: 1.4;
+}
+.ig-dm-bubble-wrap.sent .ig-dm-bubble { background: var(--blue); color: #fff; border-bottom-right-radius: 5px; }
+.ig-dm-bubble-wrap.recv .ig-dm-bubble { background: #e5e5ea; color: #1c1c1e; border-bottom-left-radius: 5px; }
+.ig-dm-time { font-size: 10px; color: var(--text-faint); margin-top: 3px; padding: 0 4px; }
+.ig-dm-input-bar {
+  padding: 8px 12px 18px; display: flex;
+  gap: 8px; align-items: center;
+  border-top: 1px solid var(--border); flex-shrink: 0;
+}
+.ig-dm-input-wrap {
+  flex: 1; background: transparent;
+  border: 1.5px solid rgba(0,0,0,0.15);
+  border-radius: 22px; padding: 8px 14px;
+  display: flex; align-items: center;
+}
+.ig-dm-input {
+  flex: 1; background: transparent; border: none;
+  font-size: 15px; color: var(--text); outline: none; font-family: inherit;
+}
+.ig-dm-input::placeholder { color: #c7c7cc; }
+.ig-dm-send {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--blue); border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 15px; color: #fff; flex-shrink: 0;
+}
+.ig-dm-backend-status {
+  text-align: center; font-size: 11px;
+  color: var(--text-dim); padding: 6px 16px;
+  font-style: italic; flex-shrink: 0;
+}
+
+/* ── REELS ── same layout as Bruce's TikTok */
+#ig-reels { flex-direction: column; background: #000; }
+.reels-top-bar {
+  height: 48px; display: flex; align-items: center;
+  justify-content: space-between; padding: 0 16px;
+  flex-shrink: 0; background: #000;
+}
+.reels-back-btn {
+  color: #fff; font-size: 24px; cursor: pointer;
+  background: rgba(255,255,255,0.1);
+  border: none; border-radius: 50%;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+}
+.reels-tab-row { display: flex; gap: 20px; }
+.reels-tab { font-size: 13px; color: rgba(255,255,255,0.5); letter-spacing: 0.3px; cursor: pointer; }
+.reels-tab.active { color: #fff; font-weight: 700; border-bottom: 2px solid #fff; padding-bottom: 2px; }
+.reels-feed { flex: 1; overflow-y: auto; background: #000; position: relative; }
+.reels-feed::-webkit-scrollbar { display: none; }
+.reel-card { position: relative; width: 100%; aspect-ratio: 9/16; background: #0a0a10; overflow: hidden; flex-shrink: 0; }
+.reel-bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: brightness(0.58); }
+.reel-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 16px 12px 22px; }
+.reel-right-actions { position: absolute; right: 10px; bottom: 88px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.reel-action { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; color: #fff; }
+.reel-action svg { width: 28px; height: 28px; fill: #fff; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7)); }
+.reel-action-count { font-size: 11px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.8); letter-spacing: 0.3px; }
+.reel-avatar-ring { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #fff; overflow: hidden; margin-bottom: 6px; }
+.reel-avatar-ring img { width: 100%; height: 100%; object-fit: cover; }
+.reel-user { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+.reel-caption { font-size: 13px; color: rgba(255,255,255,0.9); line-height: 1.5; margin-bottom: 8px; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+.reel-sound { font-size: 10px; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 4px; }
+.reels-bottom-nav {
+  display: flex; justify-content: space-around; align-items: center;
+  padding: 8px 0 14px; background: rgba(242,242,247,0.97);
+  border-top: 1px solid rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+.reels-nav-item {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 3px; cursor: pointer; color: rgba(0,0,0,0.45);
+  font-size: 9px; letter-spacing: 0.3px; transition: color 0.15s;
+}
+.reels-nav-item.active { color: #1c1c1e; }
+.reels-nav-item svg { width: 22px; height: 22px; fill: currentColor; }
+</style>
+</head>
+<body ontouchstart="">
+
+<div class="phone">
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <span class="status-time" id="clock">9:41</span>
+    <div class="status-icons">
+      <span>▲▲▲</span>
+      <span>WiFi</span>
+      <span>█████</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       LOCK SCREEN
+  ══════════════════════════════════════════ -->
+  <div class="screen active" id="lock" onclick="goTo('home')">
+    <div class="lock-bg-pattern"></div>
+    <div class="lock-logo">Clark Kent · Personal Device</div>
+    <div class="lock-time" id="lockClock">9:41</div>
+    <div class="lock-date">Wednesday, April 2</div>
+
+    <div class="lock-notifs">
+      <div class="lock-notif">
+        <div class="lock-notif-icon" style="background:rgba(255,68,58,0.15);">📰</div>
+        <div class="lock-notif-content">
+          <div class="lock-notif-app">Perry White</div>
+          <div class="lock-notif-text">Kent — Lane's housing piece goes front page. Need your sidebar by noon. Don't be late.</div>
+        </div>
+      </div>
+      <div class="lock-notif">
+        <div class="lock-notif-icon" style="background:rgba(48,209,88,0.12);">🌽</div>
+        <div class="lock-notif-content">
+          <div class="lock-notif-app">Ma 🌽</div>
+          <div class="lock-notif-text">Clark Jonathan Kent I have called you TWICE. Are you eating??</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lock-hint">tap to unlock</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       HOME SCREEN
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="home">
+    <div class="home-scroll">
+
+      <!-- Breaking news widget -->
+      <div class="home-widget">
+        <div class="hw-eyebrow">Daily Planet · Breaking</div>
+        <div class="hw-headline">Metropolis Housing Contracts — Exclusive Investigation Drops Tomorrow</div>
+        <div class="hw-meta">Lane &amp; Kent · Front Page</div>
+      </div>
+
+      <!-- App Grid -->
+      <div class="app-grid">
+
+        <!-- Messages -->
+        <div class="app-item" onclick="goTo('messages')">
+          <div class="app-icon" style="background:linear-gradient(145deg,#29c94a,#1fa83a);">
+            <img src="https://i.postimg.cc/d39NKQm0/IMG_8453.png" alt="Messages" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">
+            <div class="app-badge">2</div>
+          </div>
+          <div class="app-label">Messages</div>
+        </div>
+
+        <!-- Phone -->
+        <div class="app-item" onclick="goTo('calls')">
+          <div class="app-icon" style="background:linear-gradient(145deg,#30d158,#25a845);">
+            <img src="https://i.postimg.cc/LsyGhF55/PNG.png" alt="Phone" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">
+          </div>
+          <div class="app-label">Phone</div>
+        </div>
+
+        <!-- Photos -->
+        <div class="app-item" onclick="goTo('gallery')">
+          <div class="app-icon" style="background:linear-gradient(145deg,#1c1c1e,#2c2c2e);">
+            <img src="https://i.postimg.cc/DZZ5NW2r/free_photos_icon_svg_download_png_2365244.webp" alt="Photos" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">
+          </div>
+          <div class="app-label">Photos</div>
+        </div>
+
+        <!-- Instagram (shell — next chunk) -->
+        <div class="app-item" onclick="goTo('instagram')">
+          <div class="app-icon" style="background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);">
+            <svg viewBox="0 0 24 24" style="width:62%;height:62%;fill:rgba(255,255,255,0.95);">
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+            </svg>
+          </div>
+          <div class="app-label">Instagram</div>
+        </div>
+
+        <!-- X -->
+        <div class="app-item" onclick="goTo('twitter')">
+          <div class="app-icon" style="background:linear-gradient(145deg,#0c0c0e,#1a1a1c);">
+            <svg viewBox="0 0 24 24" style="width:60%;height:60%;fill:rgba(255,255,255,0.9);">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.737-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+          </div>
+          <div class="app-label">X</div>
+        </div>
+
+        <!-- Daily Planet (shell — next chunk) -->
+        <div class="app-item" onclick="goTo('daily-planet')">
+          <div class="app-icon" style="background:linear-gradient(145deg,#00438a,#0066cc);">
+           <img src="https://i.postimg.cc/kMyXsB2k/Daily_Planet_Logo_SFAF.webp" alt="Daily Planet" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">
+          </div>
+          <div class="app-label">Daily Planet</div>
+        </div>
+
+        <!-- Bible (shell — next chunk) -->
+        <div class="app-item" onclick="goTo('bible')">
+          <div class="app-icon" style="background:linear-gradient(145deg,#2c1810,#4a2c1a);">
+            <img src="https://i.postimg.cc/SRt89wmr/IMG_8457.png" alt="Daily Planet" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">
+          </div>
+          <div class="app-label">Bible</div>
+        </div>
+
+        <!-- Notes -->
+        <div class="app-item" onclick="goTo('notes')">
+          <div class="app-icon" style="background:linear-gradient(145deg,#ffd60a,#f5c200);">
+            <img src="https://i.postimg.cc/WzQzTjNZ/IMG_8461.png"alt="Notes" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">
+          </div>
+          <div class="app-label">Notes</div>
+        </div>
+
+        <!-- Camera (decorative) -->
+        <div class="app-item">
+          <div class="app-icon" style="background:linear-gradient(145deg,#1c1c1e,#2c2c2e);">
+          <img src="https://i.postimg.cc/L8Db0FtX/came.png"alt="Camera" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">
+          </div>
+          <div class="app-label">Camera</div>
+        </div>
+
+        <!-- Maps (decorative) -->
+        <div class="app-item">
+          <div class="app-icon" style="background:linear-gradient(145deg,#1a3a1a,#204a20);">
+           <img src="https://i.postimg.cc/6QLvc79G/IMG_8460.png"alt="Maps" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">
+          </div>
+          <div class="app-label">Maps</div>
+        </div>
+
+        <!-- Calendar (decorative) -->
+        <div class="app-item">
+          <div class="app-icon" style="background:linear-gradient(145deg,#1c1c1e,#2c2c2e);">
+          <img src="https://i.postimg.cc/V6Z5Zn2r/IMG_8462.png"alt="Calendar" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">
+          </div>
+          <div class="app-label">Calendar</div>
+        </div>
+
+        <!-- Settings (decorative) -->
+        <div class="app-item">
+          <div class="app-icon" style="background:linear-gradient(145deg,#2c2c2e,#3a3a3c);">
+            <img src="https://i.postimg.cc/g2tKZzy6/free_settings_icon_svg_download_png_461608.webp"alt="Settings" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">
+          </div>
+          <div class="app-label">Settings</div>
+        </div>
+
+        <!-- Roblox (decorative — non-clickable) -->
+        <div class="app-item" style="opacity:0.8;pointer-events:none;">
+          <div class="app-icon" style="background:linear-gradient(145deg,#cc2200,#ff3300);">
+            <img src="https://i.postimg.cc/fygXd6wQ/IMG_8456.png"alt="Roblox" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">
+          </div>
+          <div class="app-label">Roblox</div>
+        </div>
+
+      </div>
+    </div><!-- end home-scroll -->
+
+    <!-- Dock -->
+    <div class="home-dock">
+      <div class="app-item" onclick="goTo('messages')" style="gap:0;">
+        <div class="app-icon" style="width:52px;height:52px;border-radius:14px;background:linear-gradient(145deg,#29c94a,#1fa83a);">
+           <img src="https://i.postimg.cc/d39NKQm0/IMG_8453.png" alt="Messages" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">
+        </div>
+      </div>
+      <div class="app-item" onclick="goTo('calls')" style="gap:0;">
+        <div class="app-icon" style="width:52px;height:52px;border-radius:14px;background:linear-gradient(145deg,#30d158,#25a845);">
+          <img src="https://i.postimg.cc/LsyGhF55/PNG.png" alt="Phone" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">
+        </div>
+      </div>
+      <div class="app-item" onclick="goTo('instagram')" style="gap:0;">
+        <div class="app-icon" style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);">
+          <svg viewBox="0 0 24 24" style="width:30px;height:30px;fill:rgba(255,255,255,0.95);">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       MESSAGES LIST
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="messages" style="flex-direction:column;">
+    <div style="flex-shrink:0;padding:10px 16px 0;">
+      <div class="back-btn" onclick="goTo('home')" style="margin-bottom:4px;">Messages</div>
+    </div>
+    <div class="msg-large-header">
+      <div class="msg-large-title">Messages</div>
+      <div class="msg-search">🔍 <span>Search</span></div>
+    </div>
+    <div class="msg-list">
+      <div class="msg-thread" onclick="openChat('lois')">
+        <div class="thread-avatar"><img src="https://i.postimg.cc/zfgNWM1d/IMG_8523.jpg" alt="Lois"></div>
+        <div class="thread-info">
+          <div class="thread-name">L. L</div>
+          <div class="thread-preview">Lois.</div>
+        </div>
+        <div class="thread-meta">
+          <div class="thread-time">4:02</div>
+        </div>
+      </div>
+      <div class="msg-thread" onclick="openChat('ma')">
+        <div class="thread-avatar" style="background:linear-gradient(135deg,#2a4a1a,#1e3810);display:flex;align-items:center;justify-content:center;font-size:24px;">🌽</div>
+        <div class="thread-info">
+          <div class="thread-name">Ma 🌽</div>
+          <div class="thread-preview">Come home soon. I mean it.</div>
+        </div>
+        <div class="thread-meta">
+          <div class="thread-time">9:03</div>
+          <div class="thread-unread">1</div>
+        </div>
+      </div>
+      <div class="msg-thread" onclick="openChat('jimmy')">
+         <div class="thread-avatar"><img src="https://i.postimg.cc/nhTs9yTQ/IMG_8464.jpg"  alt="Jimmy"></div>
+        <div class="thread-info">
+          <div class="thread-name">Jimmy</div>
+          <div class="thread-preview">you say that every single time s...</div>
+        </div>
+        <div class="thread-meta">
+          <div class="thread-time">Mon</div>
+          <div class="thread-unread">1</div>
+        </div>
+      </div>
+      <div class="msg-thread" onclick="openChat('perry')">
+        <div class="thread-avatar" style="background:linear-gradient(135deg,#3a1010,#2a0808);display:flex;align-items:center;justify-content:center;font-size:24px;">📰</div>
+        <div class="thread-info">
+          <div class="thread-name">Perry White</div>
+          <div class="thread-preview">Don't call me chief.</div>
+        </div>
+        <div class="thread-meta">
+          <div class="thread-time">Yesterday</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       CHAT VIEW
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="chat" style="flex-direction:column;">
+    <div class="chat-header">
+      <div class="chat-header-back" onclick="goTo('messages')">Messages</div>
+      <div class="chat-header-av"><img id="chatHeaderAvImg" src="" alt=""></div>
+      <div class="chat-header-name" id="chatName">Lois Lane</div>
+      <div class="chat-header-status" id="chatStatus">Active now</div>
+      <div class="chat-header-actions">
+        <span>📹</span>
+        <span>📞</span>
+      </div>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input-bar">
+      <div class="chat-input-wrap">
+        <input class="chat-input" placeholder="iMessage" id="chatInput">
+      </div>
+      <button class="chat-send" onclick="sendMsg()">↑</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       PHOTO GALLERY
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="gallery" style="flex-direction:column;">
+    <div class="inner-header">
+      <div class="back-btn" onclick="goTo('home')">Back</div>
+      <span class="inner-title">Recents</span>
+    </div>
+    <div class="gallery-body">
+      <img src="https://i.postimg.cc/pVGktSK0/profile.png" class="gallery-photo" onclick="openPhoto(this.src)">
+      <img src="https://i.postimg.cc/gcS4P73B/IMG_0877.png" class="gallery-photo" onclick="openPhoto(this.src)">
+      <img src="https://i.postimg.cc/1RCMZdph/IMG_0879.png" class="gallery-photo" onclick="openPhoto(this.src)">
+      <img src="https://i.postimg.cc/jqgvr1y1/IMG_0876.png" class="gallery-photo" onclick="openPhoto(this.src)">
+      <img src="https://i.postimg.cc/tTm68L88/IMG_8515.jpg" class="gallery-photo" onclick="openPhoto(this.src)">
+      <img src="https://i.postimg.cc/631ZFDFD/IMG_8516.jpg" class="gallery-photo" onclick="openPhoto(this.src)">
+      <img src="https://i.postimg.cc/N09sDFRn/IMG_8522.jpg" class="gallery-photo" onclick="openPhoto(this.src)">
+      <img src="https://i.postimg.cc/FHMrPcNr/IMG_8524.jpg" class="gallery-photo" onclick="openPhoto(this.src)">
+      <img src="https://i.postimg.cc/qRZKW9Wm/IMG_8519.jpgg" class="gallery-photo" onclick="openPhoto(this.src)">
+    </div>
+    <div class="photo-viewer" id="photoViewer">
+      <div class="photo-viewer-top">
+        <button class="viewer-close" onclick="closePhoto()">Done</button>
+      </div>
+      <div class="photo-stage" id="photoStage">
+        <img id="viewerImage" class="viewer-image" src="" alt="Photo">
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       NOTES
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="notes" style="flex-direction:column;">
+    <div style="flex-shrink:0;padding:10px 16px 0;">
+      <div class="back-btn" onclick="goTo('home')">Back</div>
+    </div>
+    <div class="notes-body">
+      <div class="notes-large-header">
+        <div class="notes-large-title">Notes</div>
+      </div>
+      <div class="notes-search-bar">🔍 Search</div>
+      <div class="notes-section-label">Today</div>
+      <div class="note-item">
+        <div class="note-title">PLACEHOLDER</div>
+        <div class="note-preview">Placeholder Placeholder Placeholder Placeholder.</div>
+        <div class="note-date">Apr 2, 2026 · 8:12 AM</div>
+      </div>
+      <div class="note-item">
+        <div class="note-title">PLACEHOLDER</div>
+        <div class="note-preview">Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder </div>
+        <div class="note-date">Apr 2, 2026 · 7:48 AM</div>
+      </div>
+      <div class="notes-section-label">Previous</div>
+      <div class="note-item">
+        <div class="note-title">PLACEHOLDER</div>
+        <div class="note-preview">Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder </div>
+        <div class="note-date">Mar 30, 2026 · 11:14 AM</div>
+      </div>
+      <div class="note-item">
+        <div class="note-title">PLACEHOLDER</div>
+        <div class="note-preview">Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder </div>
+        <div class="note-date">Mar 28, 2026 · 11:58 PM</div>
+      </div>
+      <div class="note-item">
+        <div class="note-title">PLACEHOLDER</div>
+        <div class="note-preview">Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder </div>
+        <div class="note-date">Mar 22, 2026 · 9:35 PM</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       X (TWITTER)
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="twitter" style="flex-direction:column;">
+    <div class="inner-header">
+      <div class="back-btn" onclick="goTo('home')">Back</div>
+      <span class="inner-title">X</span>
+    </div>
+    <div class="x-large-header" style="padding-top:6px;">
+      <div>
+        <div class="x-large-title">For You</div>
+        <div class="x-handle-lbl">@justaregularkent</div>
+      </div>
+      <div class="x-avatar" style="width:36px;height:36px;">
+        <img src="https://i.postimg.cc/NMVr0D90/IMG_8226.jpg" alt="Clark">
+      </div>
+    </div>
+    <div class="x-body">
+
+      <div class="x-post">
+        <div class="x-avatar"><img src="https://i.postimg.cc/NMVr0D90/IMG_8226.jpg" alt="Clark"></div>
+        <div class="x-post-content">
+          <div class="x-post-header">
+            <span class="x-post-name">Clark</span>
+            <span class="x-post-handle">@justaregularkent</span>
+            <span class="x-post-time">2h</span>
+          </div>
+          <div class="x-post-text">If the first Monster doesn’t work crack a second one open.. and a third… and a fourth.. and a fifth …</div>
+          <div class="x-post-actions">
+            <span class="x-action">💬 0</span>
+            <span class="x-action">♻️ 2</span>
+            <span class="x-action">🤍 5</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="x-post">
+        <div class="x-avatar"><img src="https://i.postimg.cc/VsCR2GV0/IMG_8228.jpg" alt="Lois"></div>
+        <div class="x-post-content">
+          <div class="x-post-header">
+            <span class="x-post-name">Lois Lane</span>
+            <span class="x-post-handle">@loislane.2</span>
+            <span class="x-post-time">5h</span>
+          </div>
+          <div class="x-post-text">Spent the last 2 weeks investigating Metropolis' housing contracts — my full piece, with a section from Clark, drops tomorrow.</div>
+          <div class="x-post-actions">
+            <span class="x-action">💬 41</span>
+            <span class="x-action">♻️ 803</span>
+            <span class="x-action">🤍 8k</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="x-post">
+        <div class="x-avatar"><img src="https://i.postimg.cc/NMVr0D90/IMG_8226.jpg" alt="Clark"></div>
+        <div class="x-post-content">
+          <div class="x-post-header">
+            <span class="x-post-name">Clark</span>
+            <span class="x-post-handle">@justaregularkent</span>
+            <span class="x-post-time">8h</span>
+          </div>
+          <div class="x-post-text">Tbh, I would participate in Jigsaw's games because I know it takes a long time to think about them and set them up.</div>
+          <div class="x-post-actions">
+            <span class="x-action">💬 2</span>
+            <span class="x-action">♻️ 4</span>
+            <span class="x-action">🤍 8</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="x-post">
+        <div class="x-avatar"><img src="https://i.postimg.cc/vZX1xJXx/IMG_8466.jpg" alt="Clark"></div>
+        <div class="x-post-content">
+          <div class="x-post-header">
+            <span class="x-post-name">jim</span>
+            <span class="x-post-handle">@jimmyolsen</span>
+            <span class="x-post-time">10h</span>
+          </div>
+          <div class="x-post-text">film is not dead & i will die on this hill (nearly did today actually)</div>
+          <div class="x-post-actions">
+            <span class="x-action">💬 19</span>
+            <span class="x-action">♻️ 204</span>
+            <span class="x-action">🤍 1.6k</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="x-post">
+        <div class="x-avatar"><img src="https://i.postimg.cc/nLW4PBKd/Screenshot_2026_04_02_233649.png" alt="Bruce"></div>
+        <div class="x-post-content">
+          <div class="x-post-header">
+            <span class="x-post-name">Bruce Wayne</span>
+            <span class="x-post-handle">@BruceWayne</span>
+            <span class="x-post-time">1d</span>
+          </div>
+          <div class="x-post-text">We must overthrow the culture of corruption that silences women.</div>
+          <div class="x-post-actions">
+            <span class="x-action">💬 14</span>
+            <span class="x-action">♻️ 102</span>
+            <span class="x-action">🤍 2.1k</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="x-post">
+        <div class="x-avatar"><img src="https://i.postimg.cc/NMVr0D90/IMG_8226.jpg" alt="Clark"></div>
+        <div class="x-post-content">
+          <div class="x-post-header">
+            <span class="x-post-name">Clark</span>
+            <span class="x-post-handle">@justaregularkent</span>
+            <span class="x-post-time">2d</span>
+          </div>
+          <div class="x-post-text">What does DL trade mean</div>
+          <div class="x-post-actions">
+            <span class="x-action">💬 7</span>
+            <span class="x-action">♻️ 22</span>
+            <span class="x-action">🤍 14</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       CALLS
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="calls" style="flex-direction:column;">
+    <div style="flex-shrink:0;padding:10px 16px 0;">
+      <div class="back-btn" onclick="goTo('home')">Back</div>
+    </div>
+    <div class="calls-large-header">
+      <div class="calls-large-title">Recents</div>
+    </div>
+    <div class="calls-body">
+      <div class="calls-section">Missed</div>
+      <div class="call-item">
+        <div class="call-avatar" style="background:linear-gradient(135deg,#2a4a1a,#1e3810);display:flex;align-items:center;justify-content:center;font-size:22px;">🌽</div>
+        <div class="call-info">
+          <div class="call-name missed">Ma 🌽</div>
+          <div class="call-detail">↙ Incoming · missed · 2 times</div>
+        </div>
+        <div class="call-time">2h ago</div>
+        <div class="call-phone-btn">ℹ</div>
+      </div>
+      <div class="calls-section">All Recents</div>
+      <div class="call-item">
+        <div class="call-avatar"><img src="https://i.postimg.cc/zfgNWM1d/IMG_8523.jpg" alt="Lois"></div>
+        <div class="call-info">
+          <div class="call-name">L. L</div>
+          <div class="call-detail">↗ Outgoing · 14 min</div>
+        </div>
+        <div class="call-time">Yesterday</div>
+        <div class="call-phone-btn">ℹ</div>
+      </div>
+      <div class="call-item">
+        <div class="call-avatar" style="background:linear-gradient(135deg,#3a1010,#2a0808);display:flex;align-items:center;justify-content:center;font-size:20px;">📰</div>
+        <div class="call-info">
+          <div class="call-name">Perry White</div>
+          <div class="call-detail">↙ Incoming · 4 min</div>
+        </div>
+        <div class="call-time">Yesterday</div>
+        <div class="call-phone-btn">ℹ</div>
+      </div>
+      <div class="call-item">
+        <div class="call-avatar" ><img src="https://i.postimg.cc/nhTs9yTQ/IMG_8464.jpg" alt="Lois"></div>
+        <div class="call-info">
+          <div class="call-name">Jimmy</div>
+          <div class="call-detail">↙ Incoming · 8 min</div>
+        </div>
+        <div class="call-time">Mon</div>
+        <div class="call-phone-btn">ℹ</div>
+      </div>
+      <div class="call-item">
+        <div class="call-avatar" style="background:linear-gradient(135deg,#2a4a1a,#1e3810);display:flex;align-items:center;justify-content:center;font-size:22px;">🌽</div>
+        <div class="call-info">
+          <div class="call-name">Ma 🌽</div>
+          <div class="call-detail">↗ Outgoing · 42 min</div>
+        </div>
+        <div class="call-time">Sun</div>
+        <div class="call-phone-btn">ℹ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       INSTAGRAM — MAIN FEED
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="instagram" style="position:relative;">
+
+    <!-- Notification panel overlay -->
+    <div class="ig-notif-panel" id="igNotifPanel">
+      <div class="ig-notif-panel-header">
+        <div class="back-btn" onclick="closeIgNotifs()" style="color:var(--blue);">Notifications</div>
+      </div>
+      <div style="flex:1;overflow-y:auto;">
+        <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;padding:12px 16px 6px;">This Week</div>
+        <div class="ig-notif-item">
+          <div class="ig-notif-av"><img src="https://i.postimg.cc/htMJQkMd/IMG_8465.jpg" alt="Barry"></div>
+          <div>
+            <div class="ig-notif-text"><strong>jimo1sen</strong> liked your photo.</div>
+            <div class="ig-notif-ago">1h ago</div>
+          </div>
+        </div>
+        <div class="ig-notif-item">
+          <div class="ig-notif-av"><img src="https://i.postimg.cc/m2KmPx1w/IMG_8141.jpg" alt="Bruce"></div>
+          <div>
+            <div class="ig-notif-text"><strong>brucewayne</strong> accepted your follow request.</div>
+            <div class="ig-notif-ago">5h ago</div>
+          </div>
+        </div>
+        <div class="ig-notif-item">
+          <div class="ig-notif-av"><img src="https://i.postimg.cc/VsCR2GV0/IMG_8228.jpg" alt="Lois"></div>
+          <div>
+            <div class="ig-notif-text"><strong>loislane.2</strong> commented: "Delete this"</div>
+            <div class="ig-notif-ago">Yesterday</div>
+          </div>
+        </div>
+        <div class="ig-notif-item">
+          <div class="ig-notif-av"><img src="https://i.postimg.cc/htMJQkMd/IMG_8465.jpg" alt="Barry"></div>
+          <div>
+            <div class="ig-notif-text"><strong>jimo1sen</strong> liked your photo.</div>
+            <div class="ig-notif-ago">2d ago</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Story viewer overlay -->
+    <div class="ig-story-viewer" id="igStoryViewer">
+      <div class="story-progress-bar" id="storyProgressBar"></div>
+      <div class="story-top-bar">
+        <div class="story-avatar-sm"><img id="storyAvatarImg" src="" alt=""></div>
+        <div>
+          <div class="story-username" id="storyUsername">clarkent</div>
+          <div class="story-time-lbl" id="storyTimeLbl">now</div>
+        </div>
+        <button class="story-close" onclick="closeStory()">✕</button>
+      </div>
+      <img class="story-img" id="storyImg" src="" alt="">
+      <div class="story-tap-left" onclick="prevStory()"></div>
+      <div class="story-tap-right" onclick="nextStory()"></div>
+    </div>
+
+    <!-- Top bar -->
+    <div class="ig-top-bar">
+      <div class="ig-top-logo">Instagram</div>
+      <div class="ig-top-actions">
+        <div class="ig-top-btn" onclick="openIgNotifs()">
+          <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+          <div class="ig-notif-dot"></div>
+        </div>
+        <div class="ig-top-btn" onclick="goTo('ig-dms')">
+          <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="social-body">
+      <!-- Stories -->
+      <div class="ig-stories">
+        <div class="ig-story" onclick="openStory(0)">
+          <div class="ig-story-ring">
+            <div class="ig-story-avatar"><img src="https://i.postimg.cc/xTgmchxw/IMG_8243.jpg" alt="Clark"></div>
+          </div>
+          <div class="ig-story-name">Your Story</div>
+        </div>
+        <div class="ig-story" onclick="openStory(1)">
+          <div class="ig-story-ring">
+            <div class="ig-story-avatar"><img src="https://i.postimg.cc/VsCR2GV0/IMG_8228.jpg" alt="Lois"></div>
+          </div>
+          <div class="ig-story-name">lois</div>
+        </div>
+        <div class="ig-story" onclick="openStory(2)">
+          <div class="ig-story-ring">
+            <div class="ig-story-avatar"><img src="https://i.postimg.cc/htMJQkMd/IMG_8465.jpg" alt="Barry"></div>
+          </div>
+          <div class="ig-story-name">jimmy</div>
+        </div>
+        <div class="ig-story" onclick="openStory(3)">
+          <div class="ig-story-ring seen">
+            <div class="ig-story-avatar"><img src="https://i.postimg.cc/m2KmPx1w/IMG_8141.jpg" alt="Bruce"></div>
+          </div>
+          <div class="ig-story-name">bruce</div>
+        </div>
+        <div class="ig-story" onclick="openStory(4)">
+          <div class="ig-story-ring seen">
+            <div class="ig-story-avatar"><img src="https://i.postimg.cc/zGmyLpzq/IMG_8241.jpg" alt="Diana"></div>
+          </div>
+          <div class="ig-story-name">diana</div>
+        </div>
+      </div>
+
+      <!-- Post 1 — Lois -->
+      <div class="ig-post">
+        <div class="ig-post-header">
+          <div class="ig-post-avatar"><img src="https://i.postimg.cc/VsCR2GV0/IMG_8228.jpg" alt="Lois"></div>
+          <div>
+            <div class="ig-post-user">loislane.2</div>
+            <div class="ig-post-location">Metropolis</div>
+          </div>
+        </div>
+        <img src="https://i.postimg.cc/zGK4nDFy/IMG_8569.jpg" class="ig-post-img" alt="">
+        <div class="ig-post-actions"><span>🤍</span><span>💬</span><span>↗</span><span style="margin-left:auto;">🔖</span></div>
+        <div class="ig-post-likes">3,102 likes</div>
+        <div class="ig-post-caption"><strong>loislane.2</strong> Metropolis never sleeps and neither do I, apparently. New piece drops in 3 </div>
+        <div class="ig-post-time">3 hours ago</div>
+      </div>
+
+      <!-- Post 2 — Barry -->
+      <div class="ig-post">
+        <div class="ig-post-header">
+          <div class="ig-post-avatar"><img src="https://i.postimg.cc/htMJQkMd/IMG_8465.jpg" alt="Barry"></div>
+          <div>
+            <div class="ig-post-user">jimo1son</div>
+            <div class="ig-post-location">Central City</div>
+          </div>
+        </div>
+        <img src="https://i.postimg.cc/8zs2SWFY/IMG_8508.jpg" class="ig-post-img" alt="">
+        <div class="ig-post-actions"><span>❤️</span><span>💬</span><span>↗</span><span style="margin-left:auto;">🔖</span></div>
+        <div class="ig-post-likes">2,847 likes</div>
+        <div class="ig-post-caption"><strong>jimo1son</strong> day 47 trying 2 get a clear pic of superman. he moves at the speed of light u guys its rigged</div>
+        <div class="ig-post-time">6 hours ago</div>
+      </div>
+
+      <!-- Post 3 — Bruce (private account, Clark follows) -->
+      <div class="ig-post">
+        <div class="ig-post-header">
+          <div class="ig-post-avatar"><img src="https://i.postimg.cc/m2KmPx1w/IMG_8141.jpg" alt="Bruce"></div>
+          <div>
+            <div class="ig-post-user">brucewayne</div>
+            <div class="ig-post-location">Gotham</div>
+          </div>
+        </div>
+        <img src="https://i.postimg.cc/sxdLGv2b/IMG_8164.jpg" class="ig-post-img" alt="">
+        <div class="ig-post-actions"><span>🤍</span><span>💬</span><span>↗</span><span style="margin-left:auto;">🔖</span></div>
+        <div class="ig-post-likes">129 likes</div>
+        <div class="ig-post-caption"><strong>brucewayne</strong> Obligatory Gala pic.</div>
+        <div class="ig-post-time">Yesterday</div>
+      </div>
+    </div>
+
+    <!-- Bottom nav -->
+    <div class="ig-bottom-nav">
+      <div class="ig-nav-btn active" onclick="goTo('instagram')">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </div>
+      <div class="ig-nav-btn">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      </div>
+      <div class="ig-nav-btn" onclick="goTo('ig-reels')">
+        <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+      </div>
+      <div class="ig-nav-btn" onclick="goTo('ig-dms')">
+        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+      </div>
+      <div class="ig-nav-btn" onclick="goTo('ig-profile')">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       INSTAGRAM — PROFILE
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="ig-profile" style="flex-direction:column;">
+    <div class="inner-header">
+      <div class="back-btn" onclick="goTo('instagram')" style="color:var(--blue);">Back</div>
+      <span class="inner-title" style="font-size:15px;font-weight:700;">clarkent</span>
+    </div>
+    <div class="ig-profile-body">
+      <div class="ig-profile-header">
+        <div class="ig-profile-top">
+          <div class="ig-profile-avatar-wrap">
+            <div class="ig-profile-avatar"><img src="https://i.postimg.cc/xTgmchxw/IMG_8243.jpg" alt="Clark"></div>
+          </div>
+          <div class="ig-profile-stats">
+            <div class="ig-profile-stat">
+              <div class="ig-profile-stat-num">105</div>
+              <div class="ig-profile-stat-label">Posts</div>
+            </div>
+            <div class="ig-profile-stat">
+              <div class="ig-profile-stat-num">67</div>
+              <div class="ig-profile-stat-label">Followers</div>
+            </div>
+            <div class="ig-profile-stat">
+              <div class="ig-profile-stat-num">1,042</div>
+              <div class="ig-profile-stat-label">Following</div>
+            </div>
+          </div>
+        </div>
+        <div class="ig-profile-name">Clark Kent</div>
+        <div class="ig-profile-handle">@clarkent</div>
+        <div class="ig-profile-bio"><p>Dog lover 🐶 <br> Photographer on the side 📷 <br> Reporter @dailyplanet 📰 </p></div>
+        <div class="ig-profile-btn-row">
+          <div class="ig-profile-btn">Edit Profile</div>
+          <div class="ig-profile-btn">Share Profile</div>
+        </div>
+      </div>
+      <div class="ig-profile-tab-bar">
+        <div class="ig-profile-tab active">
+          <svg viewBox="0 0 24 24"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
+        </div>
+        <div class="ig-profile-tab">
+          <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07..."/></svg>
+          <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+        </div>
+        <div class="ig-profile-tab">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+        </div>
+      </div>
+      <div class="ig-profile-grid">
+        <img src="https://i.postimg.cc/529yJP1N/8363BE97_E15A_4AB2_8A5F_FD35B8F6B3A1.jpg" class="ig-profile-thumb" onclick="openPhoto(this.src)" alt="">
+        <img src="https://i.postimg.cc/nhVrxdZz/D6A8F51D_86CE_42FE_BF07_476C0F234497.jpg" class="ig-profile-thumb" onclick="openPhoto(this.src)" alt="">
+        <img src="https://i.postimg.cc/cL1CWDZ6/26625524_5807_4BC4_9F23_36D0D7B4199A.jpg" class="ig-profile-thumb" onclick="openPhoto(this.src)" alt="">
+        <img src="https://i.postimg.cc/ht4vnCgG/0B2F517D_A70E_489D_9316_2530AFBA316D.jpg" class="ig-profile-thumb" onclick="openPhoto(this.src)" alt="">
+        <img src="https://i.postimg.cc/W1pzV9j1/92653D27_15E8_4795_B2E6_EF4A678BE77A.jpg" class="ig-profile-thumb" onclick="openPhoto(this.src)" alt="">
+        <img src="https://i.postimg.cc/zGDvNd5V/B58154F8_6017_49AE_BDB2_2DDFCBFB8D05.jpg" class="ig-profile-thumb" onclick="openPhoto(this.src)" alt="">
+        <img src="https://i.postimg.cc/QdNCD6sF/7D5AC6B6_4524_4B5F_84B0_8A71C5DE1DA1.jpg" class="ig-profile-thumb" onclick="openPhoto(this.src)" alt="">
+        <img src="https://i.postimg.cc/P5fJH6hJ/1B71BB90_E90D_4EFF_88CB_101D932A9D07.jpg" class="ig-profile-thumb" onclick="openPhoto(this.src)" alt="">
+        <img src="https://i.postimg.cc/QdNCD6sB/56B6DEB9_9848_498F_8EB2_0AC78A0E4FD5.jpg" class="ig-profile-thumb" onclick="openPhoto(this.src)" alt="">
+      </div>
+    </div>
+
+    <div class="ig-bottom-nav">
+      <div class="ig-nav-btn" onclick="goTo('instagram')">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </div>
+      <div class="ig-nav-btn">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      </div>
+      <div class="ig-nav-btn" onclick="goTo('ig-reels')">
+        <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+      </div>
+      <div class="ig-nav-btn" onclick="goTo('ig-dms')">
+        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+      </div>
+      <div class="ig-nav-btn active">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       INSTAGRAM — REELS (TikTok-style layout)
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="ig-reels" style="flex-direction:column;background:#000;">
+    <div class="reels-top-bar">
+      <button class="reels-back-btn" onclick="goTo('instagram')">‹</button>
+      <div class="reels-tab-row">
+        <span class="reels-tab">Following</span>
+        <span class="reels-tab active">Reels</span>
+      </div>
+      <div style="width:32px;"></div>
+    </div>
+
+    <div class="reels-feed">
+
+      <!-- Reel 1 -->
+      <div class="reel-card">
+        <div class="reel-bg" style="background-image:url('https://i.postimg.cc/xC52LjY0/IMG_8565.gif');"></div>
+        <div class="reel-overlay">
+          <div class="reel-right-actions">
+            <div>
+              <div class="reel-avatar-ring"><img src="https://i.postimg.cc/xC52LjY0/IMG_8565.gif" alt="Barry"></div>
+            </div>
+            <div class="reel-action">
+              <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <span class="reel-action-count">12.4K</span>
+            </div>
+            <div class="reel-action">
+              <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+              <span class="reel-action-count">488</span>
+            </div>
+            <div class="reel-action">
+              <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+              <span class="reel-action-count">Share</span>
+            </div>
+          </div>
+          <div>
+            <div class="reel-user">@freak.pork</div>
+            <div class="reel-caption">#fyp</div>
+            <div class="reel-sound">♫ · Golden Hour — JVKE</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reel 2 -->
+      <div class="reel-card">
+        <div class="reel-bg" style="background-image:url('https://i.postimg.cc/Ss4NZVZ9/IMG_8492.gif');"></div>
+        <div class="reel-overlay">
+          <div class="reel-right-actions">
+            <div>
+              <div class="reel-avatar-ring"><img src="https://i.postimg.cc/Ss4NZVZ9/IMG_8492.gif" alt="Lois"></div>
+            </div>
+            <div class="reel-action">
+              <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <span class="reel-action-count">5.8K</span>
+            </div>
+            <div class="reel-action">
+              <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+              <span class="reel-action-count">201</span>
+            </div>
+            <div class="reel-action">
+              <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+              <span class="reel-action-count">Share</span>
+            </div>
+          </div>
+          <div>
+            <div class="reel-user">@dank.me3mers</div>
+            <div class="reel-caption">when bro</div>
+            <div class="reel-sound">♫ · Sunrise — Norah Jones</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="reels-bottom-nav">
+      <div class="reels-nav-item" onclick="goTo('instagram')">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span>Home</span>
+      </div>
+      <div class="reels-nav-item">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <span>Search</span>
+      </div>
+      <div class="reels-nav-item active">
+        <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+        <span>Reels</span>
+      </div>
+      <div class="reels-nav-item" onclick="goTo('ig-dms')">
+        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        <span>Messages</span>
+      </div>
+      <div class="reels-nav-item" onclick="goTo('ig-profile')">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+        <span>Profile</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       INSTAGRAM — DM LIST
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="ig-dms" style="flex-direction:column;">
+    <div class="inner-header">
+      <div class="back-btn" onclick="goTo('instagram')" style="color:var(--blue);">Back</div>
+      <span class="inner-title">Messages</span>
+      <div class="inner-header-right" style="position:absolute;right:16px;">✏️</div>
+    </div>
+    <div style="padding:10px 16px 6px;flex-shrink:0;">
+      <div class="msg-search" style="margin:0;">🔍 <span>Search</span></div>
+    </div>
+    <div class="ig-dm-list">
+      <div class="ig-dm-thread" onclick="openIgDmChat()">
+        <div class="ig-dm-av"><img src="https://i.postimg.cc/m2KmPx1w/IMG_8141.jpg" alt="Bruce"></div>
+        <div class="ig-dm-info">
+          <div class="ig-dm-name">brucewayne</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <div class="ig-dm-time">Mon</div>
+          <div class="ig-dm-unread" id="bruceUnreadDot"></div>
+        </div>
+      </div>
+      <div class="ig-dm-thread">
+        <div class="ig-dm-av"><img src="https://i.postimg.cc/VsCR2GV0/IMG_8228.jpg" alt="Lois"></div>
+        <div class="ig-dm-info">
+          <div class="ig-dm-name">loislane.2</div>
+          <div class="ig-dm-preview">nice shot kent</div>
+        </div>
+        <div class="ig-dm-time">Yesterday</div>
+      </div>
+      <div class="ig-dm-thread">
+        <div class="ig-dm-av"><img src="https://i.postimg.cc/htMJQkMd/IMG_8465.jpg" alt="Barry"></div>
+        <div class="ig-dm-info">
+          <div class="ig-dm-name">jimo1son</div>
+          <div class="ig-dm-preview">dude you follow bruce wayne's private??? how</div>
+        </div>
+        <div class="ig-dm-time">Sun</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       INSTAGRAM — DM CHAT WITH BRUCE (backend)
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="ig-dm-chat" style="flex-direction:column;">
+    <div class="ig-dm-chat-header">
+      <div class="ig-dm-back" onclick="goTo('ig-dms')">Back</div>
+      <div class="ig-dm-header-av"><img src="https://i.postimg.cc/m2KmPx1w/IMG_8141.jpg" alt="Bruce"></div>
+      <div class="ig-dm-header-name">disdagothamgrimreaper</div>
+      <div class="ig-dm-header-handle">Bruce Wayne · @brucewayne</div>
+    </div>
+    <div class="ig-dm-backend-status" id="igDmStatus">
+      <span class="pulse">●</span> <span id="igDmStatusText">Connecting…</span>
+    </div>
+    <div class="ig-dm-messages" id="igDmMessages"></div>
+    <div class="ig-dm-input-bar">
+      <div class="ig-dm-input-wrap">
+        <input class="ig-dm-input" placeholder="Message…" id="igDmInput">
+      </div>
+      <button class="ig-dm-send" onclick="sendIgDm()">↑</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       DAILY PLANET APP
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="daily-planet" style="flex-direction:column;">
+
+    <!-- Header / Masthead -->
+    <div class="dp-header">
+      <div class="dp-back" onclick="goTo('home')">Home</div>
+      <div class="dp-masthead">
+        <div class="dp-globe">🌐</div>
+        <div>
+          <div class="dp-title">The Daily Planet</div>
+          <div class="dp-subtitle">Metropolis · Est. 1935</div>
+        </div>
+        <div class="dp-edition">
+          <div>Wednesday</div>
+          <div>Apr 2, 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dp-body">
+
+      <!-- Breaking label -->
+      <div class="dp-section-label">⚡ Breaking · Front Page</div>
+
+      <!-- Featured story -->
+      <div class="dp-featured">
+        <div class="dp-featured-eyebrow">Exclusive Investigation</div>
+        <div class="dp-featured-headline">Shadow Contracts: How One Shell Company Quietly Captured Metropolis Housing</div>
+        <div class="dp-featured-sub">A single Delaware P.O. box links four separate city contracts worth over $340 million. Tenants never knew who owned their buildings, until now.</div>
+        <div class="dp-featured-byline">By <strong>Lois Lane</strong> and <strong>Clark Kent</strong> · Daily Planet Staff · Updated 8:40 AM</div>
+      </div>
+
+      <!-- Article 2 -->
+      <div class="dp-article">
+        <div class="dp-article-text">
+          <div class="dp-article-tag">City Hall</div>
+          <div class="dp-article-headline">Comptroller's Office Declines to Comment Ahead of Front-Page Story</div>
+          <div class="dp-article-meta">K. Lorne · 1h ago</div>
+        </div>
+        <div class="dp-article-thumb">🏛️</div>
+      </div>
+
+      <!-- Article 3 -->
+      <div class="dp-article">
+        <div class="dp-article-text">
+          <div class="dp-article-tag">Tech</div>
+          <div class="dp-article-headline">LexCorp Q1 Earnings Exceed Projections: Shares Surge 12%</div>
+          <div class="dp-article-meta">B. Reeves · 3h ago</div>
+        </div>
+        <div class="dp-article-thumb">📈</div>
+      </div>
+
+      <!-- Article 4 -->
+      <div class="dp-article">
+        <div class="dp-article-text">
+          <div class="dp-article-tag">Metro</div>
+          <div class="dp-article-headline">Superman Responds to Riverside Bridge Incident in Under Four Minutes</div>
+          <div class="dp-article-meta">J. Olsen · 5h ago</div>
+        </div>
+        <div class="dp-article-thumb">🦸</div>
+      </div>
+
+      <!-- Article 5 -->
+      <div class="dp-article">
+        <div class="dp-article-text">
+          <div class="dp-article-tag">National</div>
+          <div class="dp-article-headline">Gotham City Council Passes Sweeping Infrastructure Bill After Years of Deadlock</div>
+          <div class="dp-article-meta">Wire Service · 7h ago</div>
+        </div>
+        <div class="dp-article-thumb">🏙️</div>
+      </div>
+
+      <!-- Op-Ed callout -->
+      <div class="dp-op-ed">
+        <div class="dp-op-ed-label">Opinion · Editor's Desk</div>
+        <div class="dp-op-ed-quote">"Is Gotham exporting it's problems to us?."</div>
+        <div class="dp-op-ed-attr">— Perry White, Editor-in-Chief · Daily Planet</div>
+      </div>
+
+      <!-- Article 6 -->
+      <div class="dp-article">
+        <div class="dp-article-text">
+          <div class="dp-article-tag">Science</div>
+          <div class="dp-article-headline">S.T.A.R. Labs Announces Breakthrough in High-Altitude Atmospheric Research</div>
+          <div class="dp-article-meta">Wire Service · Yesterday</div>
+        </div>
+        <div class="dp-article-thumb">🔬</div>
+      </div>
+
+      <!-- Article 7 -->
+      <div class="dp-article">
+        <div class="dp-article-text">
+          <div class="dp-article-tag">Sports</div>
+          <div class="dp-article-headline">Metropolis Metros Drop Game 3 - Series Tied</div>
+          <div class="dp-article-meta">D. Sanders · Yesterday</div>
+        </div>
+        <div class="dp-article-thumb">⚾</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       BIBLE APP
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="bible" style="flex-direction:column;">
+
+    <!-- Header -->
+    <div class="bible-header">
+      <div class="bible-back" onclick="goTo('home')">Home</div>
+      <div class="bible-header-row">
+        <div class="bible-cross-icon">✝️</div>
+        <div>
+          <div class="bible-header-title">Holy Bible</div>
+          <div class="bible-header-version">New International Version</div>
+        </div>
+        <div class="bible-streak">
+          <div class="bible-streak-num">14</div>
+          <div>day streak</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bible-body">
+
+      <!-- Verse of the Day -->
+      <div class="bible-votd">
+        <div class="bible-votd-label">✦ Verse of the Day</div>
+        <div class="bible-votd-text">He has shown you, O mortal, what is good. And what does the Lord require of you? To act justly and to love mercy and to walk humbly with your God.</div>
+        <div class="bible-votd-ref">Micah 6:8</div>
+        <div class="bible-votd-actions">
+          <div class="bible-votd-btn">📋 Copy</div>
+          <div class="bible-votd-btn">🔖 Save</div>
+          <div class="bible-votd-btn">↗ Share</div>
+        </div>
+      </div>
+
+      <!-- Reading Plan -->
+      <div class="bible-section-label">Reading Plan</div>
+      <div class="bible-plan-card">
+        <div class="bible-plan-icon">📖</div>
+        <div class="bible-plan-info">
+          <div class="bible-plan-title">Psalms &amp; Proverbs</div>
+          <div class="bible-plan-sub">30-day plan · Day 14 of 30</div>
+        </div>
+        <div class="bible-plan-progress">47%</div>
+      </div>
+
+      <!-- Bookmarked Verses -->
+      <div class="bible-section-label" style="margin-top:4px;">Saved Verses</div>
+
+      <div class="bible-verse-card">
+        <div class="bible-verse-ref">Isaiah 40:31</div>
+        <div class="bible-verse-text">But those who hope in the Lord will renew their strength. They will soar on wings like eagles; they will run and not grow weary, they will walk and not be faint.</div>
+      </div>
+
+      <div class="bible-verse-card">
+        <div class="bible-verse-ref">Romans 8:28</div>
+        <div class="bible-verse-text">And we know that in all things God works for the good of those who love him, who have been called according to his purpose.</div>
+      </div>
+
+      <div class="bible-verse-card">
+        <div class="bible-verse-ref">Psalm 46:1</div>
+        <div class="bible-verse-text">God is our refuge and strength, an ever-present help in trouble.</div>
+      </div>
+
+      <div class="bible-verse-card">
+        <div class="bible-verse-ref">Matthew 5:9</div>
+        <div class="bible-verse-text">Blessed are the peacemakers, for they will be called children of God.</div>
+      </div>
+
+      <div class="bible-verse-card">
+        <div class="bible-verse-ref">Proverbs 31:8–9</div>
+        <div class="bible-verse-text">Speak up for those who cannot speak for themselves, for the rights of all who are destitute. Speak up and judge fairly; defend the rights of the poor and needy.</div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- end .phone -->
+
+<script>
+/* ── Discord SDK ── */
+const DISCORD_CLIENT_ID = "1489475363196244028"; // ← update with Clark's Activity client ID
+let discordSdk = null;
+
+async function initDiscordSdk() {
+  try {
+    const { DiscordSDK } = await import("https://esm.sh/@discord/embedded-app-sdk");
+    discordSdk = new DiscordSDK(DISCORD_CLIENT_ID);
+    await discordSdk.ready();
+    await discordSdk.commands.setOrientationLockState({
+      lock_state: "unlocked",
+      picture_in_picture_lock_state: "unlocked"
+    });
+    const { code } = await discordSdk.commands.authorize({
+      client_id: DISCORD_CLIENT_ID,
+      response_type: "code",
+      state: "",
+      prompt: "none",
+      scope: ["identify"],
+    });
+    console.log("Discord SDK authorized, code:", code);
+  } catch (err) {
+    console.log("SDK error (or not in Discord):", err.message);
+  }
+}
+initDiscordSdk();
+
+/* ── Inline Discord handshake (ensures iOS WKWebView enables touch) ── */
+(function() {
+  try {
+    var params  = new URLSearchParams(location.search);
+    var frameId = params.get('frame_id') || '';
+    var nonce   = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    var msg     = { v: 1, cmd: 'HANDSHAKE', args: { v: 1, client_id: DISCORD_CLIENT_ID, frame_id: frameId }, nonce };
+    try { window.parent.postMessage(msg, 'https://discord.com'); } catch(e) {}
+    try { window.parent.postMessage(msg, '*'); } catch(e) {}
+    console.log('[Discord] Inline handshake sent');
+  } catch(e) { console.log('[Discord] Handshake error:', e.message); }
+})();
+
+/* ── Document-level touchstart — makes the whole page touch-aware ── */
+document.addEventListener('touchstart', function() {}, { passive: true });
+
+/* ── Per-element touch + pointer handlers ── */
+(function() {
+  function fireOnclick(el, e) {
+    try {
+      if (typeof el.onclick === 'function') {
+        el.onclick.call(el, e);
+      } else {
+        var attr = el.getAttribute('onclick');
+        if (attr) (new Function(attr)).call(el);
+      }
+    } catch (ex) { console.log('[touch] onclick error:', ex.message); }
+  }
+
+  function bindTouchable(el) {
+    if (el._discordTouchBound) return;
+    el._discordTouchBound = true;
+    var startX = 0, startY = 0, moved = false;
+    el.addEventListener('touchstart', function(e) {
+      startX = e.touches[0].clientX; startY = e.touches[0].clientY; moved = false;
+    }, { passive: true });
+    el.addEventListener('touchmove', function(e) {
+      if (Math.abs(e.touches[0].clientX - startX) > 8 || Math.abs(e.touches[0].clientY - startY) > 8) moved = true;
+    }, { passive: true });
+    el.addEventListener('touchend', function(e) {
+      if (moved) return;
+      e.preventDefault();
+      fireOnclick(el, e);
+    }, { passive: false });
+    el.addEventListener('pointerup', function(e) {
+      if (e.pointerType === 'touch') fireOnclick(el, e);
+    }, { passive: true });
+  }
+
+  function bindAll() { document.querySelectorAll('[onclick]').forEach(bindTouchable); }
+  bindAll();
+  if (window.MutationObserver) {
+    new MutationObserver(function() { bindAll(); }).observe(document.body, { childList: true, subtree: true });
+  }
+})();
+
+/* ══════════════════════════════════════════
+   CHAT DATA
+══════════════════════════════════════════ */
+const CHATS = {
+  lois: {
+    name: 'L. L',
+    status: 'Active now',
+    avatarSrc: 'https://i.postimg.cc/zfgNWM1d/IMG_8523.jpg',
+    messages: [
+      { from: 'sent', text: "Lois", time: '3:55' },
+      { from: 'sent', text: "Lois r u awake ?💤", time: '3:55' },
+      { from: 'recv', text: "Unfortunately.", time: '3:57' },
+      { from: 'sent', text: "How r u not 😱😱😱 ??!!", time: '3:58' },
+{ from: 'sent', text: "Call me !!", time: '3:58' },
+ { from: 'recv', text: "No.", time: '3:58' },
+      { from: 'sent', type: 'image', src: 'https://i.postimg.cc/N09sDFRn/IMG_8522.jpg', time: '8:31' },
+      { from: 'sent', text: "Ur in here too.", time: '4:01' },
+      { from: 'recv', text: "I know.", time: '4:02' },
+{ from: 'sent', text: "Lois call me📞", time: '4:02' },
+{ from: 'sent', text: "5 minutes", time: '4:02' },
+{ from: 'sent', text: "Lois", time: '4:02' },
+{ from: 'sent', text: "Lois", time: '4:02' },
+    ]
+  },
+  ma: {
+    name: 'Ma 🌽',
+    status: 'Last seen 9:05',
+    avatarSrc: '',
+    messages: [
+      { from: 'recv', text: "Clark Jonathan Kent I have called you TWICE.", time: '8:40' },
+      { from: 'recv', text: "Are you eating? I sent a pie with Pete Ross last month and he said you didn't even open the door.", time: '8:41' },
+      { from: 'sent', text: "Ma I was at a thing. I called you back that night.", time: '8:55' },
+      { from: 'recv', text: "At 1am! From where?!", time: '8:56' },
+      { from: 'sent', text: "Work thing. I'm fine. I promise ! How's the farm ?", time: '9:01' },
+      { from: 'recv', text: "The farm is the farm. Come home soon. I mean it.", time: '9:03' },
+    ]
+  },
+  jimmy: {
+    name: 'Jimmy',
+    status: 'Last seen Mon',
+    avatarSrc: 'https://i.postimg.cc/nhTs9yTQ/IMG_8464.jpg',
+    messages: [
+      { from: 'recv', text: "bro where have you been all day", time: 'Mon 2:14' },
+      { from: 'sent', text: "Oh, around. U know how it is", time: 'Mon 2:20' },
+      { from: 'recv', text: "i literally do not know how it is that's why i'm asking you", time: 'Mon 2:21' },
+      { from: 'sent', text: "Time just gets away from me. Haha", time: 'Mon 2:30' },
+      { from: 'recv', text: "you say that every single time something insane happens", time: 'Mon 2:31' },
+    ]
+  },
+  perry: {
+    name: 'Perry White',
+    status: 'Last seen Yesterday',
+    avatarSrc: '',
+    messages: [
+      { from: 'recv', text: "Kent. Lane's housing piece goes front page. Need your sidebar by noon.", time: 'Yesterday 9:00' },
+      { from: 'sent', text: "On it, Chief.", time: 'Yesterday 9:14' },
+      { from: 'recv', text: "Don't call me chief.", time: 'Yesterday 9:14' },
+    ]
+  }
+};
+
+let currentChat = null;
+
+/* ── Screen navigation ── */
+function goTo(screenId) {
+  var target = document.getElementById(screenId);
+  if (!target) { console.warn('[goTo] No screen:', screenId); return; }
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  target.classList.add('active');
+}
+
+/* ── Open a chat thread ── */
+function openChat(chatId) {
+  currentChat = chatId;
+  const chat = CHATS[chatId];
+  document.getElementById('chatName').textContent    = chat.name;
+  document.getElementById('chatStatus').textContent  = chat.status;
+
+  // Avatar
+  const av = document.getElementById('chatHeaderAvImg');
+  if (chat.avatarSrc) {
+    av.src = chat.avatarSrc;
+    av.style.display = 'block';
+  } else {
+    av.style.display = 'none';
+  }
+
+  renderChatMessages();
+  goTo('chat');
+  setTimeout(() => {
+    const c = document.getElementById('chatMessages');
+    c.scrollTop = c.scrollHeight;
+  }, 50);
+}
+
+function renderChatMessages() {
+  const chat = CHATS[currentChat];
+  const container = document.getElementById('chatMessages');
+  container.innerHTML = '';
+
+  chat.messages.forEach(m => {
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-bubble-wrap ' + m.from;
+
+    if (m.type === 'image') {
+      wrap.innerHTML = `
+        <div class="chat-bubble chat-img-bubble">
+          <img src="${m.src}" class="chat-img" onclick="openPhoto('${m.src}')">
+        </div>
+        <div class="chat-time">${m.time}</div>`;
+    } else {
+      wrap.innerHTML = `
+        <div class="chat-bubble">${m.text}</div>
+        <div class="chat-time">${m.time}</div>`;
+    }
+    container.appendChild(wrap);
+  });
+}
+
+/* ── Send a message ── */
+function sendMsg() {
+  const input = document.getElementById('chatInput');
+  const text  = input.value.trim();
+  if (!text || !currentChat) return;
+  CHATS[currentChat].messages.push({ from: 'sent', text, time: 'Now' });
+  input.value = '';
+  renderChatMessages();
+  setTimeout(() => {
+    const c = document.getElementById('chatMessages');
+    c.scrollTop = c.scrollHeight;
+  }, 30);
+}
+
+document.getElementById('chatInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendMsg();
+});
+
+/* ── Clock ── */
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours().toString().padStart(2,'0');
+  const m = now.getMinutes().toString().padStart(2,'0');
+  const t = `${h}:${m}`;
+  document.getElementById('clock').textContent     = t;
+  document.getElementById('lockClock').textContent = t;
+}
+updateClock();
+setInterval(updateClock, 10000);
+
+/* ══════════════════════════════════════════
+   GALLERY / PHOTO VIEWER
+══════════════════════════════════════════ */
+const galleryPhotos = [
+  "https://i.postimg.cc/pVGktSK0/profile.png",
+  "https://i.postimg.cc/gcS4P73B/IMG_0877.png",
+  "https://i.postimg.cc/1RCMZdph/IMG_0879.png",
+  "https://i.postimg.cc/jqgvr1y1/IMG_0876.png",
+  "https://i.postimg.cc/tTm68L88/IMG_8515.jpg",
+  "https://i.postimg.cc/631ZFDFD/IMG_8516.jpg",
+  "https://i.postimg.cc/N09sDFRn/IMG_8522.jpg",
+  "https://i.postimg.cc/FHMrPcNr/IMG_8524.jpg",
+  "https://i.postimg.cc/qRZKW9Wm/IMG_8519.jpgg"
+];
+
+let currentPhotoIndex = 0;
+let isZoomed = false, scale = 1, panX = 0, panY = 0;
+let startX = 0, startY = 0, dragStartX = 0, dragStartY = 0;
+let isDragging = false, isPinching = false;
+let pinchStartDistance = 0, pinchStartScale = 1;
+
+function getViewerEls() {
+  return {
+    viewer: document.getElementById('photoViewer'),
+    img:    document.getElementById('viewerImage'),
+    stage:  document.getElementById('photoStage')
+  };
+}
+
+function openPhoto(src) {
+  const { viewer, img } = getViewerEls();
+  if (!viewer || !img) return;
+  currentPhotoIndex = galleryPhotos.indexOf(src);
+  if (currentPhotoIndex === -1) currentPhotoIndex = 0;
+  resetZoom();
+  img.style.opacity   = '0';
+  img.style.transform = 'scale(0.96)';
+  img.src = src;
+  viewer.classList.add('active');
+  viewer.classList.remove('closing');
+  requestAnimationFrame(() => {
+    img.style.opacity   = '1';
+    img.style.transform = 'translate(0px,0px) scale(1)';
+  });
+}
+
+function closePhoto(animated = true) {
+  const { viewer, img } = getViewerEls();
+  if (!viewer || !img) return;
+  if (!animated) { viewer.classList.remove('active','closing'); resetZoom(); return; }
+  viewer.classList.add('closing');
+  img.style.opacity   = '0';
+  img.style.transform = 'scale(0.96)';
+  setTimeout(() => {
+    viewer.classList.remove('active','closing');
+    resetZoom();
+    img.style.opacity   = '1';
+    img.style.transform = 'translate(0px,0px) scale(1)';
+  }, 180);
+}
+
+function showPhoto(index, direction = 0) {
+  const { img } = getViewerEls();
+  if (!img) return;
+  if (index < 0) index = galleryPhotos.length - 1;
+  if (index >= galleryPhotos.length) index = 0;
+  currentPhotoIndex = index;
+  img.style.opacity   = '0';
+  img.style.transform = `translateX(${direction * 42}px) scale(0.98)`;
+  setTimeout(() => {
+    img.src = galleryPhotos[currentPhotoIndex];
+    resetZoom();
+    img.style.opacity   = '1';
+    img.style.transform = 'translate(0px,0px) scale(1)';
+  }, 120);
+}
+
+function resetZoom() {
+  const { img } = getViewerEls();
+  if (!img) return;
+  isZoomed = false; isDragging = false; isPinching = false;
+  scale = 1; panX = 0; panY = 0;
+  img.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
+  img.style.transform  = 'translate(0px,0px) scale(1)';
+}
+
+function applyTransform() {
+  const { img } = getViewerEls();
+  if (!img) return;
+  img.style.transform = `translate(${panX}px,${panY}px) scale(${scale})`;
+}
+
+function distanceBetweenTouches(t1, t2) {
+  return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+}
+
+function clampPan() {
+  const { img, stage } = getViewerEls();
+  if (!img || !stage) return;
+  const maxX = Math.max(0, ((img.clientWidth  * scale) - stage.clientWidth)  / 2);
+  const maxY = Math.max(0, ((img.clientHeight * scale) - stage.clientHeight) / 2);
+  panX = Math.max(-maxX, Math.min(maxX, panX));
+  panY = Math.max(-maxY, Math.min(maxY, panY));
+}
+
+function setupGalleryInteractions() {
+  const { img, stage } = getViewerEls();
+  if (!img || !stage) return;
+
+  img.addEventListener('dblclick', () => {
+    if (isZoomed) { resetZoom(); }
+    else { isZoomed = true; scale = 2; clampPan(); applyTransform(); }
+  });
+
+  stage.addEventListener('pointerdown', e => {
+    startX = e.clientX; startY = e.clientY;
+    dragStartX = e.clientX; dragStartY = e.clientY;
+    if (isZoomed) { isDragging = true; img.style.transition = 'none'; }
+  });
+
+  stage.addEventListener('pointermove', e => {
+    if (isZoomed && isDragging && !isPinching) {
+      const dx = e.clientX - dragStartX, dy = e.clientY - dragStartY;
+      dragStartX = e.clientX; dragStartY = e.clientY;
+      panX += dx; panY += dy; clampPan(); applyTransform(); return;
+    }
+    if (!isZoomed) {
+      const dy = e.clientY - startY;
+      if (Math.abs(dy) > 8) {
+        img.style.transition = 'none';
+        img.style.transform  = `translateY(${dy}px) scale(${Math.max(0.9, 1 - Math.abs(dy)/900)})`;
+        img.style.opacity    = `${Math.max(0.35, 1 - Math.abs(dy)/300)}`;
+      }
+    }
+  });
+
+  function endPointer(e) {
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    img.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
+    if (isZoomed) { isDragging = false; clampPan(); applyTransform(); return; }
+    if (Math.abs(dy) > 120 && Math.abs(dy) > Math.abs(dx)) { closePhoto(true); return; }
+    if (Math.abs(dx) > 50  && Math.abs(dx) > Math.abs(dy)) {
+      showPhoto(dx < 0 ? currentPhotoIndex + 1 : currentPhotoIndex - 1, dx < 0 ? -1 : 1); return;
+    }
+    img.style.transform = 'translate(0px,0px) scale(1)';
+    img.style.opacity   = '1';
+  }
+
+  stage.addEventListener('pointerup', endPointer);
+  stage.addEventListener('pointercancel', () => {
+    isDragging = false;
+    img.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
+    if (!isZoomed) { img.style.transform = 'translate(0px,0px) scale(1)'; img.style.opacity = '1'; }
+  });
+
+  stage.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      isPinching = true;
+      pinchStartDistance = distanceBetweenTouches(e.touches[0], e.touches[1]);
+      pinchStartScale    = scale;
+      img.style.transition = 'none';
+    }
+  }, { passive: false });
+
+  stage.addEventListener('touchmove', e => {
+    if (e.touches.length === 2) {
+      e.preventDefault(); isPinching = true;
+      const newDist = distanceBetweenTouches(e.touches[0], e.touches[1]);
+      scale = Math.max(1, Math.min(4, pinchStartScale * (newDist / pinchStartDistance)));
+      isZoomed = scale > 1.01;
+      clampPan(); applyTransform();
+    }
+  }, { passive: false });
+
+  stage.addEventListener('touchend', () => {
+    if (isPinching) {
+      isPinching = false;
+      img.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
+      if (scale <= 1.01) resetZoom();
+      else { isZoomed = true; clampPan(); applyTransform(); }
+    }
+  });
+}
+
+setupGalleryInteractions();
+
+/* ══════════════════════════════════════════
+   INSTAGRAM STORIES
+══════════════════════════════════════════ */
+const STORIES = [
+  {
+    user: 'clarkent', avatarSrc: 'https://i.postimg.cc/xTgmchxw/IMG_8243.jpg',
+    time: 'now',
+    imgs: [
+      'https://i.postimg.cc/FRp40Fm4/IMG_8564.gif',
+      'https://i.postimg.cc/8zHSpDws/IMG_8497.jpg'
+    ]
+  },
+  {
+    user: 'loislane.2', avatarSrc: 'https://i.postimg.cc/VsCR2GV0/IMG_8228.jpg',
+    time: '1h ago',
+    imgs: ['https://i.postimg.cc/zGpLHsph/IMG_8469.jpg']
+  },
+  {
+    user: 'jimol1son', avatarSrc: 'https://i.postimg.cc/htMJQkMd/IMG_8465.jpg',
+    time: '2h ago',
+    imgs: ['https://i.postimg.cc/NMDcRGY8/B4F3EE49_EAA9_4420_97AE_FF17436A7C06.jpg', 'https://i.postimg.cc/tJVSYtjY/IMG_8493.jpg']
+  },
+  {
+    user: 'brucewayne', avatarSrc: 'https://i.postimg.cc/m2KmPx1w/IMG_8141.jpg',
+    time: 'Yesterday',
+    imgs: ['https://i.postimg.cc/yxMq7vMf/IMG_8249.gif']
+  },
+  {
+    user: 'diana.themyscira', avatarSrc: 'https://i.postimg.cc/zGmyLpzq/IMG_8241.jpg',
+    time: 'Yesterday',
+    imgs: ['https://i.postimg.cc/vB8xvvNZ/IMG_8256.jpg']
+  }
+];
+
+let currentStoryUser  = 0;
+let currentStorySlide = 0;
+let storyTimer        = null;
+const STORY_DURATION  = 4000;
+
+function openStory(userIdx) {
+  currentStoryUser  = userIdx;
+  currentStorySlide = 0;
+  renderStory();
+  document.getElementById('igStoryViewer').classList.add('active');
+  startStoryTimer();
+}
+
+function renderStory() {
+  const s = STORIES[currentStoryUser];
+  const av = document.getElementById('storyAvatarImg');
+  av.src = s.avatarSrc;
+  document.getElementById('storyUsername').textContent = s.user;
+  document.getElementById('storyTimeLbl').textContent  = s.time;
+  document.getElementById('storyImg').src = s.imgs[currentStorySlide];
+  const bar = document.getElementById('storyProgressBar');
+  bar.innerHTML = '';
+  s.imgs.forEach((_, i) => {
+    const seg  = document.createElement('div'); seg.className = 'story-seg';
+    const fill = document.createElement('div'); fill.className = 'story-seg-fill' + (i < currentStorySlide ? ' done' : '');
+    seg.appendChild(fill); bar.appendChild(seg);
+  });
+  if (storyTimer) clearInterval(storyTimer);
+}
+
+function startStoryTimer() {
+  if (storyTimer) clearTimeout(storyTimer);
+  const fills = document.getElementById('storyProgressBar').querySelectorAll('.story-seg-fill');
+  if (!fills[currentStorySlide]) return;
+  const fill = fills[currentStorySlide];
+  fill.style.transition = 'none'; fill.style.width = '0%';
+  requestAnimationFrame(() => {
+    fill.style.transition = `width ${STORY_DURATION}ms linear`;
+    fill.style.width = '100%';
+  });
+  storyTimer = setTimeout(() => nextStory(), STORY_DURATION);
+}
+
+function nextStory() {
+  if (storyTimer) clearTimeout(storyTimer);
+  const s = STORIES[currentStoryUser];
+  if (currentStorySlide < s.imgs.length - 1) {
+    currentStorySlide++; renderStory(); startStoryTimer();
+  } else if (currentStoryUser < STORIES.length - 1) {
+    currentStoryUser++; currentStorySlide = 0; renderStory(); startStoryTimer();
+  } else { closeStory(); }
+}
+
+function prevStory() {
+  if (storyTimer) clearTimeout(storyTimer);
+  if (currentStorySlide > 0) { currentStorySlide--; }
+  else if (currentStoryUser > 0) { currentStoryUser--; currentStorySlide = 0; }
+  renderStory(); startStoryTimer();
+}
+
+function closeStory() {
+  if (storyTimer) clearTimeout(storyTimer);
+  document.getElementById('igStoryViewer').classList.remove('active');
+}
+
+function openIgNotifs()  { document.getElementById('igNotifPanel').classList.add('active'); }
+function closeIgNotifs() { document.getElementById('igNotifPanel').classList.remove('active'); }
+
+/* ══════════════════════════════════════════
+   INSTAGRAM DM — BACKEND MESSAGING
+   ─ Set BACKEND_URL to your server endpoint.
+   ─ Expected API:
+       GET  {BACKEND_URL}/messages?room={IG_DM_ROOM}
+            → { messages: [{id, from, text, timestamp}] }
+       POST {BACKEND_URL}/send
+            body: {room, id, from, text, timestamp}
+══════════════════════════════════════════ */
+const BACKEND_URL  = 'https://phones-backend-9rqg.onrender.com';
+const IG_DM_ROOM   = 'clark-bruce-instagram';
+const MY_IG_ID     = 'clark';
+const BRUCE_IG_ID  = 'bruce';
+
+// Seed messages shown before backend connects
+let igDmMessages = [
+  { id: 'seed-1', from: BRUCE_IG_ID, text: 'Clark.',                                                             timestamp: '2026-04-01T11:00:00Z' },
+];
+
+let igDmPollingInterval = null;
+let igDmOpen = false;
+
+function openIgDmChat() {
+  igDmOpen = true;
+  renderIgDmMessages();
+  goTo('ig-dm-chat');
+  setTimeout(() => {
+    const c = document.getElementById('igDmMessages');
+    c.scrollTop = c.scrollHeight;
+  }, 50);
+  updateIgDmStatus();
+  if (BACKEND_URL) startIgDmPolling();
+}
+
+function renderIgDmMessages() {
+  const container = document.getElementById('igDmMessages');
+  container.innerHTML = '';
+  igDmMessages.forEach(m => {
+    const side = (m.from === MY_IG_ID) ? 'sent' : 'recv';
+    const wrap = document.createElement('div');
+    wrap.className = 'ig-dm-bubble-wrap ' + side;
+    const ts = m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : 'Now';
+    wrap.innerHTML = `<div class="ig-dm-bubble">${m.text}</div><div class="ig-dm-time">${ts}</div>`;
+    container.appendChild(wrap);
+  });
+  // Update DM list preview
+  const last = igDmMessages[igDmMessages.length - 1];
+  if (last) {
+    const el = document.getElementById('bruceLastMsg');
+    if (el) el.textContent = (last.from === MY_IG_ID ? 'You: ' : '') + last.text;
+  }
+}
+
+function updateIgDmStatus() {
+  const statusEl = document.getElementById('igDmStatusText');
+  const dot      = document.querySelector('#igDmStatus .pulse');
+  if (!BACKEND_URL) {
+    if (statusEl) statusEl.textContent = 'Set BACKEND_URL to enable live messaging';
+    if (dot) dot.style.color = 'var(--text-dim)';
+  } else {
+    if (statusEl) statusEl.textContent = 'Live · Messages sync every 3s';
+    if (dot) dot.style.color = 'var(--green)';
+  }
+}
+
+async function startIgDmPolling() {
+  stopIgDmPolling();
+  igDmPollingInterval = setInterval(async () => {
+    if (!igDmOpen || !BACKEND_URL) return;
+    try {
+      const res  = await fetch(`${BACKEND_URL}/messages?room=${IG_DM_ROOM}`);
+      const data = await res.json();
+      if (data.messages && Array.isArray(data.messages)) {
+        const existingIds = new Set(igDmMessages.map(m => m.id));
+        const newMsgs     = data.messages.filter(m => !existingIds.has(m.id));
+        if (newMsgs.length > 0) {
+          igDmMessages = [...igDmMessages, ...newMsgs];
+          renderIgDmMessages();
+          const c = document.getElementById('igDmMessages');
+          if (c) c.scrollTop = c.scrollHeight;
+          // Flash the unread dot if chat isn't visible
+          const dot = document.getElementById('bruceUnreadDot');
+          if (dot) dot.style.display = 'block';
+        }
+      }
+    } catch(e) { /* backend unreachable — silent fail */ }
+  }, 3000);
+}
+
+function stopIgDmPolling() {
+  if (igDmPollingInterval) clearInterval(igDmPollingInterval);
+  igDmPollingInterval = null;
+}
+
+async function sendIgDm() {
+  const input = document.getElementById('igDmInput');
+  const text  = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  const msg = {
+    id:        Date.now().toString(36) + Math.random().toString(36).slice(2),
+    from:      MY_IG_ID,
+    text,
+    timestamp: new Date().toISOString()
+  };
+  igDmMessages.push(msg);
+  renderIgDmMessages();
+  const c = document.getElementById('igDmMessages');
+  if (c) c.scrollTop = c.scrollHeight;
+
+  if (BACKEND_URL) {
+    try {
+      await fetch(`${BACKEND_URL}/send`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ room: IG_DM_ROOM, ...msg })
+      });
+    } catch(e) { /* silent — message still shows locally */ }
+  }
+}
+
+document.getElementById('igDmInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendIgDm();
+});
+
+// Hide the unread dot once user opens the DM
+document.getElementById('ig-dm-chat').addEventListener('transitionend', () => {
+  const dot = document.getElementById('bruceUnreadDot');
+  if (dot) dot.style.display = 'none';
+});
+
+// Stop polling when navigating away from DM chat
+const origGoTo = goTo;
+
+console.log('Clark Kent phone loaded ✓');
+</script>
+</body>
+</html>
